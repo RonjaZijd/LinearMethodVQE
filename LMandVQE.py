@@ -2,6 +2,7 @@ import pennylane as qml
 from pennylane import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
+import cmath
 
 ####Needed for the code:
 Identity_mat = [[1,0], [0,1]] #haven't gotten this working inside the Hamiltonian yet. 
@@ -156,53 +157,56 @@ def imagin_circ_h(int1, int2, mat_len, U_gates, U_gener, Thets, inp_array, entan
 
 def total_ham_element(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_array, Hamil_coefs, entangle_gates):
     Ham = 0
+    HamC = 0
     i=0
     while i<len(hamiltonian_array):
         small_h_real = real_circ_h(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_array[i], entangle_gates)
         small_h_imag = imagin_circ_h(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_array[i], entangle_gates)
-        small_h = small_h_real + small_h_imag
+        small_h = small_h_real + small_h_imag*1j
+        small_conj_h = small_h_real - small_h_imag*1j
         #Ham = Ham + small_h
-        Ham = Ham + Hamil_coefs[i]*small_h     
+        Ham = Ham + Hamil_coefs[i]*small_h  
+        HamC = HamC + Hamil_coefs[i]*small_conj_h   
         i=i+1
 
-    return Ham
+    return Ham, HamC
 
 def H_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length, Hamil_array, Hamil_coeffs, entangle_gates):
-    H_matrix = np.empty(shape=(matrix_length, matrix_length))
+    H_matrix = np.empty(shape=(matrix_length, matrix_length), dtype=np.complex128)
    #print(np.shape(H_matrix))
     i=0
     while i<matrix_length:
         j=0
         while j<matrix_length:
             if j>i or j==i:
-                H = total_ham_element(i, j, matrix_length, U_gates, U_gener, Thets, Hamil_array, Hamil_coeffs, entangle_gates)
+                H, Hc = total_ham_element(i, j, matrix_length, U_gates, U_gener, Thets, Hamil_array, Hamil_coeffs, entangle_gates)
                 H_matrix[i][j] = H
-                H_matrix[j][i] = H
+                H_matrix[j][i] = Hc  ##and the complex conjugate
             j=j+1
         i=i+1
     
     return H_matrix
 
 def S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length):
-    S_matrix = np.empty(shape=(matrix_length,matrix_length))
+    S_matrix = np.empty(shape=(matrix_length,matrix_length), dtype=np.complex128)
     i=0
     while i<matrix_length:
-        j=0
-        while j<matrix_length:
-            if j>i or j==i:
-                real_part = real_circ_S(i,j, U_gates, U_gener, Thets)
+        n=0
+        while n<matrix_length:
+            if n>i or n==i:
+                real_part = real_circ_S(i,n, U_gates, U_gener, Thets)
                 #print(real_circ_S.draw())
-                imaginary_part = imagin_circ_S(i,j,U_gates,U_gener, Thets)
+                imaginary_part = imagin_circ_S(i,n,U_gates,U_gener, Thets)
 
                 ###putting it into an S matrix: 
-                S_matrix[i][j] = real_part+imaginary_part
-                S_matrix[j][i] = real_part+imaginary_part
+                S_matrix[i][n] = real_part+imaginary_part*1j
+                S_matrix[n][i] = real_part-imaginary_part*1j ###conjugate and imaginary!
 
                 ####printing it out to check the values
                 #print("Real: ", real_part)
                 #print("Imaginary: ", imaginary_part) 
                 #print()
-            j=j+1
+            n=n+1
         i=i+1
 
     return S_matrix
@@ -213,6 +217,9 @@ def S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length):
 H = H_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length, H_gates, H_coeffs, entangle_gates)
 S = S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length)
  
+#print(S)
+#print()
+#print(H)
 
 #####################                     OPTIMIZATION                  ################################
 
@@ -233,11 +240,16 @@ def alternate_update_eigvecs(S_matrix, H_matrix, circuit, Hamilt_written_out, de
     #it calculates the energy 
     eigvals, eigvecs = sp.linalg.eig(H_matrix, S_matrix)
     new_e_matrix = []
-    
+    print("The eigenvalues matrix: ")
+    print(eigvals)
     for i in range(len(eigvals)):
         ener = energy_calc(circuit, Hamilt_written_out, dev2, new_thets(eigvecs[i], Thets))
         new_e_matrix = np.append(new_e_matrix, ener)
-
+    print("Eigenvalue chosen: ")
+    print(eigvals[np.argmin(new_e_matrix)])
+    print(np.argmin(new_e_matrix))
+    print("And eigenvector chosen: ")
+    print(eigvecs[np.argmin(new_e_matrix)])
     return eigvecs[np.argmin(new_e_matrix)]
 
 def update_eigvec_w_smallest_tot(S_matrix, H_matrix):
@@ -271,9 +283,9 @@ n_array = []
 
 energy_old =0
 
-for n in range(100): ##100 is atm the maximum value of iterations
+for n in range(10): ##100 is atm the maximum value of iterations
     updaty = alternate_update_eigvecs(S, H, circuit, Hamilt_written_outt, dev2, Thets)
-    #updaty = update_eigvec_w_smallest_real(S, H)
+    #updaty = update_eigvec_w_smallest_tot(S, H)
     Thets = new_thets(updaty, Thets)
     H = H_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length, H_gates, H_coeffs, entangle_gates)
     S = S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length)
@@ -288,8 +300,8 @@ for n in range(100): ##100 is atm the maximum value of iterations
 print(energy_array)
 plt.plot(n_array, energy_array)
 plt.show()
-"""
 
+"""
 final_energy_array = []
 i_had_array = []
 
