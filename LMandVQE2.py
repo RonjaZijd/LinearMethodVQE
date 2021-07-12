@@ -6,7 +6,7 @@ import cmath
 
 ####Needed for the code:
 Identity_mat = [[1,0], [0,1]] #haven't gotten this working inside the Hamiltonian yet.  
-#np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
+np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
 
 #######################    input information        ##############################################################
@@ -16,8 +16,8 @@ Thets = np.random.normal(0, np.pi, (4,3))
 U_gener = np.array([['CNOT', 'CY', 'CZ'], ['CNOT', 'CY', 'CZ'], ['CNOT', 'CY', 'CZ'], ['CNOT', 'CY', 'CZ']])
 entangle_gates = np.array([[2,3], [2,0], [3,1]]) ###the entangled gates at the end
 
-H_coeffs = [0.45, 0.34, 0.11, 0.62] #let's keep with the small one here and change to the big actual hamiltonian later.
-H_gates = [['Z2', 'X1'], ['Y2', 'X1', 'Z4'], ['Z3'], ['X2', 'Y1'] ]
+#H_coeffs = [0.45, 0.34, 0.11, 0.62] #let's keep with the small one here and change to the big actual hamiltonian later.
+#H_gates = [['Z2', 'X1'], ['Y2', 'X1', 'Z4'], ['Z3'], ['X2', 'Y1'] ]
 
 H_VQE_coeffs = [-0.24274280513140462,-0.24274280513140462,-0.04207897647782276,0.1777128746513994,0.17771287465139946,0.12293305056183798,0.12293305056183798,0.1676831945771896,0.1676831945771896,0.17059738328801052,0.17627640804319591,-0.04475014401535161,-0.04475014401535161,0.04475014401535161,0.04475014401535161]
 H_VQE_gates = [['Z3'],['Z4'],['I1'],['Z2'],['Z1'],['Z1', 'Z3'],['Z2','Z4'],['Z1','Z4'],['Z2','Z3'],['Z1','Z2'],['Z3', 'Z4'], ['Y1', 'Y2', 'X3', 'X4'],['X1', 'X2', 'Y3', 'Y4'], ['Y1', 'X2', 'X3', 'Y4'] ]
@@ -162,17 +162,18 @@ def total_ham_element(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_
     i=0
     while i<len(hamiltonian_array):
         small_h_real = real_circ_h(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_array[i], entangle_gates)
-        small_h_imag = imagin_circ_h(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_array[i], entangle_gates)
-        small_h = small_h_real + small_h_imag*1j
-        small_conj_h = small_h_real - small_h_imag*1j
+        #small_h_imag = imagin_circ_h(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_array[i], entangle_gates)
+       # small_h = small_h_real + small_h_imag*1j
+        small_h = small_h_real ##keeping it all real for the moment
+       # small_conj_h = small_h_real - small_h_imag*1j
         Ham = Ham + Hamil_coefs[i]*small_h  
-        HamC = HamC + Hamil_coefs[i]*small_conj_h   
+        #HamC = HamC + Hamil_coefs[i]*small_conj_h   
         i=i+1
 
-    return Ham, HamC
+    return Ham #HamC
 
 def H_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length, Hamil_array, Hamil_coeffs, entangle_gates):
-    H_matrix = np.empty(shape=(matrix_length, matrix_length), dtype=np.complex128)
+    H_matrix = np.zeros(shape=(matrix_length, matrix_length), dtype=np.complex128)
    #print(np.shape(H_matrix))
     i=0
     while i<matrix_length:
@@ -188,7 +189,7 @@ def H_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length, Hamil_array, Ham
     return H_matrix
 
 def S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length):
-    S_matrix = np.empty(shape=(matrix_length,matrix_length), dtype=np.complex128)
+    S_matrix = np.zeros(shape=(matrix_length,matrix_length), dtype=np.complex128)
     i=0
     while i<matrix_length:
         n=0
@@ -210,6 +211,30 @@ def S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length):
         i=i+1
 
     return S_matrix
+
+def S_alternative_way(U_gates, U_gener, Thets, matrix_lenth):
+    S_matrix = np.zeros(shape=(matrix_length, matrix_length), dtype=np.complex128)
+    for i in range(matrix_length):
+        for n in range(matrix_length):
+            if n==i:
+                S_matrix[i][n] = 1 #setting diagonal elements to 1
+            if n>i: 
+                real_part = real_circ_S(i, n, U_gates, U_gener, Thets)
+                S_matrix[i][n] = 2*real_part
+    return S_matrix
+
+def H_alternative_way(U_gates, U_gener, Thets, matrix_length, Hamil_array, Hamil_coeffs, entangle_gates):
+    H_matrix = np.zeros(shape=(matrix_length, matrix_length), dtype=np.complex128)
+    for i in range(matrix_length):
+        for n in range(matrix_length):
+            if n==i:
+                H = total_ham_element(i, n, matrix_length, U_gates, U_gener, Thets, Hamil_array, Hamil_coeffs, entangle_gates)
+                H_matrix[i][n] = H
+            if n>i:
+                H = total_ham_element(i, n, matrix_length, U_gates, U_gener, Thets, Hamil_array, Hamil_coeffs, entangle_gates) 
+                H_matrix[i][n] = 2*H
+                H_matrix[n][i] = 2*H #twice the real part
+    return H_matrix
 
 def E_grad(Thets, Hamiltonian, circuit, device):
     energy_func = qml.ExpvalCost(circuit, Hamiltonian, device)
@@ -256,14 +281,15 @@ def energy_calc(circuit, Hamilt_written_out, device, Thets):
 ########################                     MAIN                     #################################
 
 #Calculating H and S for the first time so that it can be used
-H = H_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length, H_gates, H_coeffs, entangle_gates)
-S = S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length)
+H = H_alternative_way(U_gates, U_gener, Thets, matrix_length, H_VQE_gates, H_VQE_coeffs, entangle_gates)
+S = S_alternative_way(U_gates, U_gener, Thets, matrix_length)
 
 H_tilde = H_tilde_matrix(H, energy_calc(circuit, Hamilt_written_outt, dev2, Thets), E_grad(Thets, Hamilt_written_outt, circuit, dev2))
 S_tilde = S_tilde_matrix(S)
 
  #####################                     OPTIMIZATION                  ################################
 
+#print(E_grad(Thets, Hamilt_written_outt, circuit, dev2))
 #print(H_tilde)
 #print(S_tilde)
 
@@ -282,7 +308,57 @@ def optimiz_tils(S_til, H_til, Thets, circuit, Hamil, device):
     print(new_e_matrix)
     print("Chosen ", np.argmin(new_e_matrix))
     print()
-    return eigvecs[np.argmin(new_e_matrix)]
+    return eigvecs[np.argmin(new_e_matrix)], np.argmin(new_e_matrix)
+
+def smallest_real_optimiz(S_til, H_til):
+    eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
+    print("-----------------------------------------------------------------------------")
+    print(eigvals)
+    print(np.argmin(np.real(eigvals)))
+    print()
+    return eigvecs[np.argmin(np.real(eigvals))]
+
+def smallest_real_w_norm_optimiz(S_til, H_til):
+    eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
+    eigvals_new=[]
+    for i in range(len(eigvecs)):
+        eigvals_new = np.append(eigvals_new, eigvals[i]/eigvecs[i][0])
+        eigvecs[i] = eigvecs[i]/eigvecs[i][0]
+    print("-----------------------------------------------------------------------------")
+    print(eigvals_new)
+    print(np.argmin(np.real(eigvals_new)))
+    print(eigvecs[0])
+    print()
+    return eigvecs[np.argmin(np.real(eigvals_new))]
+
+def smallest_imagin_optimiz(S_til, H_til):
+    eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
+    print("-----------------------------------------------------------------------------")
+    print(eigvals)
+    print(np.argmin(np.imag(eigvals)))
+    print()
+    return eigvecs[np.argmin(np.imag(eigvals))]
+
+def smallest_absolute_w_norm_optimz(S_til, H_til):
+    eigvals_new=[]
+    eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
+    for i in range(len(eigvecs)):
+        eigvals_new = np.append(eigvals_new, eigvals[i]/eigvecs[i][0])
+        eigvecs[i] = eigvecs[i]/eigvecs[i][0]
+    print("-----------------------------------------------------------------------------")
+    print(eigvals)
+    print(np.argmin(np.abs(eigvals_new)))
+    print()
+    return eigvecs[np.argmin(np.abs(eigvals_new))]
+
+def smallest_real_min_imag_optimiz(S_til, H_til):
+    eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
+    eigvals_new=[]
+    for i in range(len(eigvecs)):
+        eigvals_new = np.append(eigvals_new, eigvals[i]/eigvecs[i][0])
+        eigvecs[i] = eigvecs[i]/eigvecs[i][0]
+
+    return eigvecs[np.argmin(((np.real(eigvals_new)*np.real(eigvals_new))-(np.imag(eigvals_new)*np.imag(eigvals_new))))]
 
 def new_thetsy(eigvec, Thets):
     #need to update Thets but without the second lement
@@ -291,79 +367,45 @@ def new_thetsy(eigvec, Thets):
     thets = Thets + thetsy
     return thets
 
-#needed for updating:
-energy_array = []
-n_array = []
-energy_old =0
-
-for n in range(100): ##100 is atm the maximum value of iterations
-    updaty = optimiz_tils(S_tilde, H_tilde, Thets, circuit, Hamilt_written_outt, dev2)
-    #updaty = alternate_update_eigvecs(S, H, circuit, Hamilt_written_outt, dev2, Thets)
-    #updaty = update_eigvec_w_smallest_tot(S, H)
-    #updaty = update_eigvec_w_smallest_real(S,H, circuit, Hamilt_written_outt, dev2, Thets)
-    Thets = new_thetsy(updaty, Thets)
-    H = H_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length, H_gates, H_coeffs, entangle_gates)
-    S = S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length)
-
-    eee = energy_calc(circuit, Hamilt_written_outt, dev2, Thets)
-    H_tilde = H_tilde_matrix(H, eee, E_grad(Thets, Hamilt_written_outt, circuit, dev2))
-    S_tilde = S_tilde_matrix(S)
-
-    energy_array = np.append(energy_array, eee)
-    print(n)
-    print(eee)
-    n_array = np.append(n_array, n)
-    if np.abs(energy_old-energy_array[n])<0.0000001:  ###filling in how precise we want to have it
-        print("Terminating early")
-        break
-    energy_old = energy_array[n]
- 
-print(energy_array)
-plt.plot(n_array, energy_array)
-plt.show()
-
-
-"""
-final_energy_array = []
-i_had_array = []
-
-for i in range(10):
+def actual_optimization(S_tilde, H_tilde, Thets, circuit, Hamilt_written_outt, dev2, U_gates, U_gener, matrix_length, H_gates, H_coeffs, entangel_gates):
     energy_array = []
-    for n in range(20):
-        updaty = alternate_update_eigvecs(S, H, circuit, Hamilt_written_outt, dev2, Thets)
-        Thets = new_thets(updaty, Thets)
-        H = H_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length, H_gates, H_coeffs, entangle_gates)
-        S = S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length)
+    n_array = []
+    energy_old =0
+    eigvals_args = []
+    for n in range(100): ##100 is atm the maximum value of iterations
+        #updaty, eigvaly = optimiz_tils(S_tilde, H_tilde, Thets, circuit, Hamilt_written_outt, dev2)
+        updaty = smallest_real_min_imag_optimiz(S_tilde, H_tilde)
+
+        Thets = new_thetsy(updaty, Thets)
+        H = H_alternative_way(U_gates, U_gener, Thets, matrix_length, H_gates, H_coeffs, entangel_gates)
+        S = S_alternative_way(U_gates, U_gener, Thets, matrix_length)
+
         eee = energy_calc(circuit, Hamilt_written_outt, dev2, Thets)
+        H_tilde = H_tilde_matrix(H, eee, E_grad(Thets, Hamilt_written_outt, circuit, dev2))
+        S_tilde = S_tilde_matrix(S)
+
+       # eigvals_args = np.append(eigvals_args, eigvaly)
         energy_array = np.append(energy_array, eee)
-    final_energy_array = np.append(final_energy_array, energy_array[-1])
-    i_had_array = np.append(i_had_array, i)
-    print(energy_array[-1])
-    print(i)
+        print(n)
+        print(eee)
+        n_array = np.append(n_array, n)
+        if np.abs(energy_old-energy_array[n])<0.0000001:  ###filling in how precise we want to have it
+            print("Terminating early")
+            break
+        energy_old = energy_array[n]
+ 
+    print(energy_array)
+    #fig, (ax1, ax2) = plt.subplots(2)
+    #ax1.plot(n_array, energy_array)
+    #ax2.plot(n_array, eigvals_args)
+    plt.plot(n_array, energy_array)
+    plt.title("Smallest real^2 minus imaginary^2 w/ normalized")
+    plt.xlabel("Iterations")
+    plt.ylabel("Energy")
+    plt.show()
 
-"""
+    return 0
 
-
-
-"""
-extra stuff I might want to come back to later: 
-def act_circ(U_gates, Thets, entangle_gates, wires):
-    for i in range(len(U_gates)):
-        for j in range(len(U_gates[i])):
-            gate_creator(U_gates[i][j], Thets[i][j], i) #just i because we don't have an ancilliary bit
-    final_entangled_gates_circ(entangle_gates)
-
-def act_circ2(params, wires):   ###fix the circuits and make it work for the general case
-    #print(params[0])
-    for i in wires:  #######temporarryyyy!!!!!!!!!!!!!!!!
-        print(i)
-        print(len(params[0]))
-        for j in range(3):
-            print('test')
-            gate_creator(params[0][i][j], params[1][i][j], i) #just i because we don't have an ancilliary bit
-    final_entangled_gates_circ(params[2])
+actual_optimization(S_tilde, H_tilde, Thets, circuit, Hamilt_written_outt, dev2, U_gates, U_gener, matrix_length, H_VQE_gates, H_VQE_coeffs, entangle_gates)
 
 
-
-
-"""
