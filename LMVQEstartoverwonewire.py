@@ -15,18 +15,24 @@ import matplotlib.pyplot as plt
 
 #prerequisites
 I_mat = [[1,0], [0,1]]
-#np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
+np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
 ########################   INPUT      #################################################
 
 #The circuit: 
-U_gates_alt = np.array([['RX', 'RZ']])
-U_gener_alt = np.array([['CNOT', 'CZ']])
+U_gates_alt = np.array([['RX', 'RZ'], ['RY', 'RZ']])
+U_gener_alt = np.array([['CNOT', 'CZ'], ['CY', 'CZ']])
 
 
 U_gates = np.array([['RX', 'RY', 'RZ'], ['RX', 'RY', 'RZ'], ['RX', 'RY', 'RZ'], ['RX', 'RY', 'RZ']]) ##the U gates in order
 U_gener = np.array([['CNOT', 'CY', 'CZ'], ['CNOT', 'CY', 'CZ'], ['CNOT', 'CY', 'CZ'], ['CNOT', 'CY', 'CZ']])
 entangle_gates = np.array([[2,3], [2,0], [3,1]]) ###the entangled gates at the end
+
+##In big program
+U_gates2 = np.array([['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ']]) ##the U gates in order
+U_gener2 = np.array([['CZ', 'CY', 'CZ'], ['CZ', 'CY', 'CZ'], ['CZ', 'CY', 'CZ'], ['CZ', 'CY', 'CZ']])
+
+
 
 H_coeffs = [1]
 H_gates = ['X1']
@@ -41,10 +47,11 @@ Hamilt_written_out = -0.2*qml.PauliZ(wires=2) + -0.56*qml.PauliZ(wires=3) + 0.12
 no_of_wires =2
 no_of_gates = len(U_gates_alt)
 Thets = np.random.normal(0, np.pi, (4,3))
-Thets_alt = np.random.normal(0, np.pi, (1,2))
+Thets_alt = np.random.normal(0, np.pi, (2,2))
 
-Thets_alt = np.array([[-2, 100]])
+#Thets_alt = np.array([[-1.5, 875]])
 matrix_length=Thets_alt.size
+#matrix_length=Thets.size
 
 ####################################### Gates creators #################################
 def gate_creator(string, thet, wir): ##a function to create the gates
@@ -177,11 +184,11 @@ def S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length):
                 imaginary_part = imagin_circ_S(i,n,U_gates,U_gener, Thets)
 
                 ###putting it into an S matrix: 
-                S_matrix[i][n] = real_part+imaginary_part*1j
-                S_matrix[n][i] = real_part-imaginary_part*1j ###conjugate and imaginary!
+                S_matrix[i][n] = (1/4)*( real_part+imaginary_part*1j)
+                S_matrix[n][i] = (1/4)* (real_part-imaginary_part*1j) ###conjugate and imaginary!
             n=n+1
         i=i+1
-    print("Trigger2")
+    #print("Trigger2")
     return S_matrix
 
 def S_alternative_way(U_gates, U_gener, Thets, matrix_lenth):
@@ -190,14 +197,14 @@ def S_alternative_way(U_gates, U_gener, Thets, matrix_lenth):
     for i in range(matrix_length):
         for n in range(matrix_length):
             if n==i:
-                real_part = real_circ_S(i, n, U_gates, U_gener, Thets)
-                S_matrix[i][n] = 2*real_part
-                S_matrix[i][n] = 1
+                #real_part = real_circ_S(i, n, U_gates, U_gener, Thets)
+                #S_matrix[i][n] = 2*real_part
+                S_matrix[i][n] = (1/4)
             if n>i: 
                 real_part = real_circ_S(i, n, U_gates, U_gener, Thets)
                 print(real_circ_S.draw())
-                S_matrix[i][n] = 2*real_part
-                S_matrix[n][i] = 2*real_part
+                S_matrix[i][n] = (1/2)*real_part
+                S_matrix[n][i] = (1/2)*real_part
     return S_matrix
 
 def total_ham_element(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_array, Hamil_coefs, entangle_gates):
@@ -265,6 +272,14 @@ def energy_calc(circuit, Hamilt_written_out, device, Thets):
 
 
 ################################ Main trying out ###################################
+
+def is_postive_definite(Matrix):
+    eigvals = sp.linalg.eigvalsh(Matrix)
+    print("The lowest eigenvalue is: ")
+    print(eigvals[0])
+    return (eigvals[0]+0.00000000000001)>0
+
+
 #H = H_alternative_way(U_gates, U_gener, Thets, matrix_length, H_VQE_gates, H_VQE_coeffs, entangle_gates)
 print("Tessttt 0")
 print("Test222")
@@ -275,38 +290,27 @@ print("These are the theta's: ")
 print(Thets_alt)
 print()
 
-print("This is H: ")
-#print(H)
-print()
 print("This is S: ")
-print(S)
+print(np.real(S))
 print()
 
 #H_tilde = H_tilde_matrix(H, energy_calc(circuit, Hamilt_written_outt, dev2, Thets), E_grad(Thets, Hamilt_written_outt, circuit, dev2), 0) #the first k is going to be 0
 S_tilde = S_tilde_matrix(S)
 
-print("This is H_tilde: ")
-#print(H_tilde)
-print()
 print("This is S_tilde: ")
 print(S_tilde)
 print()
 
 print("Is S positive definite: ")
-print(np.all(np.linalg.eigvals(S)>0))
+print(is_postive_definite(S))
 print()
 print("Is S-tilde postive definite: ")
-print(np.all(np.linalg.eigvals(S_tilde)>0))
+print(is_postive_definite(S))
 print()
+
 
 
 tol = 0.0000000000001  ###the Tolerance as computers aren't exact or perfect
-print("Is H symmetric: ")
-#print(np.all(np.abs(H-H.T)<tol))
-print()
-print("Is H-tilde symmetric: ")
-#print(np.all(np.abs(H_tilde-H_tilde.T)<tol))
-print()
 print("Is S symmetric: ")
 print(np.all(np.abs(S-S.T)<tol))
 print()
@@ -327,11 +331,3 @@ print()
 
 eigvals_S, eigvecs_S = sp.linalg.eig(S)
 eigvals_S_tilde, eigvecs_S_tilde = sp.linalg.eig(S_tilde)
-
-print("This is the last eigenvector of S:")
-print(eigvecs_S[-1])
-print()
-
-print("This is the second to last eigenvector of S-tilde: ")
-print(eigvecs_S_tilde[-2])
-print()
