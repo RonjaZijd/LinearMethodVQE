@@ -19,6 +19,11 @@ np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}
 
 ########################   INPUT      #################################################
 
+#singular circuit: 
+U_gates_sing = np.array([['RY', 'RZ']])
+U_gener_sing = np.array([['CY', 'CZ']])
+
+
 #The circuit: 
 U_gates_alt = np.array([['RX', 'RZ'], ['RY', 'RZ']])
 U_gener_alt = np.array([['CNOT', 'CZ'], ['CY', 'CZ']])
@@ -48,10 +53,12 @@ no_of_wires =2
 no_of_gates = len(U_gates_alt)
 Thets = np.random.normal(0, np.pi, (4,3))
 Thets_alt = np.random.normal(0, np.pi, (2,2))
+Thets_alt2 = np.random.normal(0, np.pi, (1,2))
+Thets_alt2 = np.array([[5.29, 1.71]])
 
 #Thets_alt = np.array([[-1.5, 875]])
-matrix_length=Thets_alt.size
-#matrix_length=Thets.size
+#matrix_length=Thets_alt.size
+matrix_length=Thets.size
 
 ####################################### Gates creators #################################
 def gate_creator(string, thet, wir): ##a function to create the gates
@@ -61,12 +68,14 @@ def gate_creator(string, thet, wir): ##a function to create the gates
         return qml.RY(thet, wires=wir)
     if string=='RZ':
         return qml.RZ(thet, wires=wir)
-    if string=='CNOT' or string=='X':
-        return qml.CNOT(wires=[0,wir])
-    if string=='CY' or string=='Y':
+
+def generator_creator(string, wir):
+    if string=='RX' or string=='X':
+        return qml.CNOT(wires=[0, wir])
+    if string=='RY' or string=='Y':
         return qml.CY(wires=[0,wir])
-    if string=='CZ' or string=='Z':
-        return qml.CZ(wires=[0,wir])
+    if string=='RZ' or string=='Z':
+        return qml.CZ(wires=[0, wir])
     if string=='I':
         return qml.QubitUnitary(I_mat, wires=wir)
 
@@ -76,27 +85,98 @@ def entangler(wir1, wir2, plus_ancil):
     else: 
         return qml.CNOT(wires=[wir1, wir2])
 
+def numb_to_wire(num, U_gates): #works!
+    wire = 0
+    local_pos = 0
+    iter = 0
+    loop_breaker = False
+    for i in range(len(U_gates)):
+        for j in range(len(U_gates[i])):
+            if iter==num:
+                local_pos = j
+                loop_breaker =True
+                break; #break out of both loops
+            else: 
+                iter = iter+1
+        if (loop_breaker):
+            break
+        wire = wire+1
+    
+    return wire, local_pos
 ##################################### Circuits creators ###############################
 
+def special_circ_creator(int1, int2, U_gates, Thets):
+    qml.Hadamard(wires=0)
+    ##under the assumption that num1 is smaller than num2, which we can design it to be, as they're symmetric matrices. 
+    wire1, pos1 = numb_to_wire(int1, U_gates)
+    wire2, pos2 = numb_to_wire(int2, U_gates)
+    if wire1==wire2:
+       # print("We're gonna do some same wire stuff: ")
+        n=0
+        while n<len(U_gates[wire1]):
+            if n==pos1:
+                break
+            else:
+                gate_creator(U_gates[wire1][n], Thets[wire1][n], 1)
+            n=n+1
+        qml.PauliX(wires=0)
+        generator_creator(U_gates[wire1][pos1], 1)                          
+        qml.PauliX(wires=0)
+        while n<len(U_gates[wire1]):
+            if n==pos2:
+                break
+            else:
+                gate_creator(U_gates[wire1][n], Thets[wire1][n], 1)
+            n=n+1
+        generator_creator(U_gates[wire1][pos2], 1)
+
+    else: 
+        i=0
+        while i<len(U_gates[wire1]):
+            if i==pos1:
+                break
+            else:
+               gate_creator(U_gates[wire1][i], Thets[wire1][i], 1)
+               i=i+1
+         
+        qml.PauliX(wires=0)
+        generator_creator(U_gates[wire1][pos1], 1)                          
+        qml.PauliX(wires=0)
+
+        while i<len(U_gates[wire1]):
+            gate_creator(U_gates[wire1][i], Thets[wire1][i], 1)
+            i=i+1
+
+        for j in range(len(U_gates[wire2])):
+            if j==pos2:
+                break
+            else:
+                gate_creator(U_gates[wire2][j], Thets[wire2][j], 2)
+
+        generator_creator(U_gates[wire2][pos2],2)
+
+
 def circ_creator(int1, int2, U_gates, U_gener, Thets): ##clean up later by putting it into one big numpy array
-    #print("These are the numbers we need: ")
-    #print(int1)
-    #print(int2)
     i=0
     j=0 
-    numbers_had=0               
+    numbers_had=0 
+   # print("test")               
     qml.Hadamard(wires=0) ##putting wire=0 into the +-state
     while i<len(U_gates) and numbers_had!=int1:
+        #print("test0")
         while j<len(U_gates[i]) and numbers_had!=int1:
             gate_creator(U_gates[i][j], Thets[i][j], i+1)
             j=j+1
             numbers_had=numbers_had+1
+            #print("test1")
         if j==len(U_gates[i]):
             i=i+1
             j=0 ##whenever we go to a new wire, we reset j
+
     qml.PauliX(wires=0)
-    gate_creator(U_gener[i][j], 0, i+1)                          
+    generator_creator(U_gates[i][j], i+1)                          
     qml.PauliX(wires=0)
+
     while i<len(U_gates) and numbers_had!=int2:
         while j<len(U_gates[i]) and numbers_had!=int2:
             gate_creator(U_gates[i][j], Thets[i][j], i+1)
@@ -105,10 +185,8 @@ def circ_creator(int1, int2, U_gates, U_gener, Thets): ##clean up later by putti
         if j==len(U_gates[i]):
             j=0
             i=i+1
-    #print("These are i and j just before creating the last generator: ")
-    #print(i)
-    #print(j)
-    gate_creator(U_gener[i][j], 0, i+1)
+    generator_creator(U_gates[i][j], i+1)
+
     return i,j ##returns the i and j element where it was left off.
 
 def up_to_un_circ(int2, i, j, int_max, U_gates, U_gener, Thets):  ##I and J is where we left off, if we put that in as 0 and 0, it will just go through all the gates
@@ -132,7 +210,7 @@ def c_notting_hamil(input_array): ##doesn't change when extending it to multiple
         as_characters = list(input_array[i])
         gate = as_characters[0]
         wire = int(as_characters[1])
-        gate_creator(gate, 0, wire)
+        generator_creator(gate, wire)
         i=i+1
 
 def circuit(params, wires): #standard circuit (directly from the PennylaneDemo)
@@ -146,6 +224,19 @@ def circuit(params, wires): #standard circuit (directly from the PennylaneDemo)
 ###################################   Actual QNodes  ######################################
 dev = qml.device('default.qubit', wires=5)
 dev2 = qml.device('default.qubit', wires=4)  #dev2 used for directly calculating the energy
+dev3 = qml.device('default.qubit', wires=3)
+
+@qml.qnode(dev3)
+def real_circ_S_newy(int1, int2, U_gates, Thets):
+    special_circ_creator(int1, int2, U_gates, Thets)
+    qml.Hadamard(wires=0)
+    return qml.expval(qml.PauliZ(wires=0))
+
+@qml.qnode(dev3)
+def imagin_circ_S_newy(int1, int2, U_gates, Thets):
+    special_circ_creator(int1, int2, U_gates, Thets)
+    qml.Hadamard(wires=0)
+    return qml.expval(qml.PauliY(wires=0))
 
 @qml.qnode(dev)  #assuming that these two are still correct
 def real_circ_S(int1, int2, U_gates, U_gener, Thets):
@@ -177,8 +268,6 @@ def S_Matrix_final_calc(U_gates, U_gener, Thets, matrix_length):
         n=0
         while n<matrix_length:
             if n>i or n==i:
-                print("This is thets going into it: ")
-                print(Thets[0])
                 real_part = real_circ_S(i,n, U_gates, U_gener, Thets)
                 print(real_circ_S.draw())
                 imaginary_part = imagin_circ_S(i,n,U_gates,U_gener, Thets)
@@ -206,6 +295,28 @@ def S_alternative_way(U_gates, U_gener, Thets, matrix_lenth):
                 S_matrix[i][n] = (1/2)*real_part
                 S_matrix[n][i] = (1/2)*real_part
     return S_matrix
+
+def S_alternative_way_newy(U_gates, Thets):
+    matrix_length = Thets.size
+    S_matrix = np.zeros(shape=(matrix_length,matrix_length), dtype=np.complex128)
+    i=0
+    print("Trigger0")
+    while i<matrix_length:
+        n=0
+        while n<matrix_length:
+            if n>i or n==i:
+                real_part = real_circ_S_newy(i,n, U_gates, Thets)
+                print(real_circ_S.draw())
+                imaginary_part = imagin_circ_S_newy(i,n,U_gates, Thets)
+
+                ###putting it into an S matrix: 
+                S_matrix[i][n] = (1/4)*( real_part+imaginary_part*1j)
+                S_matrix[n][i] = (1/4)* (real_part-imaginary_part*1j) ###conjugate and imaginary!
+            n=n+1
+        i=i+1
+    #print("Trigger2")
+    return S_matrix
+
 
 def total_ham_element(int1, int2, mat_len, U_gates, U_gener, Thets, hamiltonian_array, Hamil_coefs, entangle_gates):
     Ham = 0
@@ -279,20 +390,29 @@ def is_postive_definite(Matrix):
     print(eigvals[0])
     return (eigvals[0]+0.00000000000001)>0
 
-
+tol = 0.0000000000001
 #H = H_alternative_way(U_gates, U_gener, Thets, matrix_length, H_VQE_gates, H_VQE_coeffs, entangle_gates)
 print("Tessttt 0")
 print("Test222")
-S = S_Matrix_final_calc(U_gates_alt, U_gener_alt, Thets_alt, matrix_length)
-#S = S_alternative_way(U_gates, U_gener, Thets, matrix_length)
+S = S_Matrix_final_calc(U_gates2, U_gener2, Thets, matrix_length)
+S_alt = S_alternative_way_newy(U_gates2, Thets)
 
 print("These are the theta's: ")
 print(Thets_alt)
 print()
 
 print("This is S: ")
-print(np.real(S))
+print(S)
 print()
+
+print("This is S, the alternative way: ")
+print(S_alt)
+print()
+
+
+
+
+
 
 #H_tilde = H_tilde_matrix(H, energy_calc(circuit, Hamilt_written_outt, dev2, Thets), E_grad(Thets, Hamilt_written_outt, circuit, dev2), 0) #the first k is going to be 0
 S_tilde = S_tilde_matrix(S)
@@ -301,16 +421,23 @@ print("This is S_tilde: ")
 print(S_tilde)
 print()
 
+print("Are our S's the same thing? ")
+print(np.all(np.abs(S-S_alt)<tol))
+print()
+
 print("Is S positive definite: ")
 print(is_postive_definite(S))
 print()
+print("Is S-alt positive definite: ")
+print(is_postive_definite(S_alt))
+print()
 print("Is S-tilde postive definite: ")
-print(is_postive_definite(S))
+print(is_postive_definite(S_tilde))
 print()
 
 
 
-tol = 0.0000000000001  ###the Tolerance as computers aren't exact or perfect
+  ###the Tolerance as computers aren't exact or perfect
 print("Is S symmetric: ")
 print(np.all(np.abs(S-S.T)<tol))
 print()
