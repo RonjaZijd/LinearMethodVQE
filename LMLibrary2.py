@@ -350,7 +350,7 @@ def H_tilde_matrix(H_matrix, E_0, E_grad, k):  ##E_0 can be calculated using E_c
     
     return H_tilde_matrix
 
-def S_tilde_matrix(S_matrix):
+def S_tilde_matrix(S_matrix, k):
     mat_len = len(S_matrix)+1
     S_tilde_matrix = np.empty(shape=(mat_len, mat_len), dtype=np.complex128)
     S_tilde_matrix[0][0] = 1
@@ -360,7 +360,10 @@ def S_tilde_matrix(S_matrix):
     
     for i in range(len(S_matrix)):
         for j in range(len(S_matrix[i])):
-            S_tilde_matrix[i+1][j+1] = S_matrix[i][j]
+            if  i==j:
+                S_tilde_matrix[i+1][j+1] = S_matrix[i][j] + k
+            else:
+                S_tilde_matrix[i+1][j+1] = S_matrix[i][j]
     return S_tilde_matrix
 
 ######################################          Functions for the optimization         ##################################
@@ -410,3 +413,23 @@ def standard_deviation(Array, new_val, tolerance):
         return True
     else:
         return False 
+
+def different_regularization(Array, tolerance):
+
+    #Input array is the array that contains the energies of the different regularizations
+    #Output is the index which I want to choose
+    #If there is a big energy difference, choose the one with the lowest energy
+    #If there is a small energy difference <0.001 between the lowest and some others
+    #identify which others also have this energy and then choose the one with 
+    #the lowest regularization 
+    lowest_energies = []
+
+    sorted_array = np.argsort(Array)
+    #print(sorted_array)
+    for i in range(len(sorted_array)):
+        #print("Comparing these numbers for ", i)
+        #print(np.abs(Array[sorted_array[i]]-Array[sorted_array[0]]))
+        if np.abs(Array[sorted_array[i]]-Array[sorted_array[0]])<tolerance:
+            lowest_energies = np.append(lowest_energies, sorted_array[i])
+    #print(lowest_energies)
+    return int(np.amax(lowest_energies))
