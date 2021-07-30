@@ -12,11 +12,11 @@ np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}
 ######################
 
 run=2
-name_LM_file = "S001try2.csv"
-name_opt_energ_file = "S001energ.csv"
-name_opt_time_file = "S001time.csv"
-name_opt_exec_file = "S001ex.csv"
-name_opt_iter_file = "S001it.csv"
+name_LM_file = "S0tr.csv"
+name_opt_energ_file = "S0energ.csv"
+name_opt_time_file = "S0time.csv"
+name_opt_exec_file = "S0ex.csv"
+name_opt_iter_file = "S0it.csv"
 
 #####################  Input information    ####################################################
 
@@ -148,7 +148,7 @@ for n in range(100) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
-    S_tilde = LM.S_tilde_matrix(S, 0.001)
+    S_tilde = LM.S_tilde_matrix(S, 0)
 
     temp_thets_ar = []
     temp_energ_ar = []
