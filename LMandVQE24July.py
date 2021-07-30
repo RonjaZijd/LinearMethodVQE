@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import LMLibrary2 as LM  ##contains all self-made functions needed for Linear method optimization
 import copy as cp
 import time
+import pandas as pd
 
 np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
@@ -33,6 +34,8 @@ Hamilt_written_out = -0.2*qml.PauliZ(wires=2) + -0.56*qml.PauliZ(wires=3) + 0.12
 no_of_gates = len(U_gates)
 no_of_wires =5
 matrix_length=12 ##starting from 1
+
+name_csv_file = "EnergyTry1.csv"
 
 ##################################            Devices          ##########################################################
 
@@ -59,6 +62,17 @@ def energy_calc(circuit, Hamilt_written_out, device, Thets):
     energ = costy(Thets)
     return energ
 
+def energy_grad(Thets):
+    global circuit
+    global Hamilt_written_outt
+    global dev2
+    Thets = np.reshape(Thets, (4,3))
+    energy_func = qml.ExpvalCost(circuit, Hamilt_written_outt, dev2)
+    grad_func = qml.grad(energy_func)
+    E_gra = grad_func(Thets)
+    #E_gra = np.reshape(E_gra, (E_gra.size, 1))
+    return E_gra.flatten()
+
 ###################################           Scipy BFGS Method        #######################################################
 energy_array_scip = []
 n_array_scipy = []
@@ -75,7 +89,7 @@ def cost_func_scipy(Thets):
 
 t_0_scipy = time.process_time()
 Thets = np.reshape(Thets, (12,1))
-res = sp.optimize.minimize(cost_func_scipy, Thets, method = 'BFGS')
+res = sp.optimize.minimize(cost_func_scipy, Thets, method = 'BFGS', jac=energy_grad)
 iterations_scipy = res.get('nfev')
 energy_scipy = res.get('fun')
 t_1_scipy = time.process_time()
@@ -83,9 +97,9 @@ t_1_scipy = time.process_time()
 for n in range(iterations_scipy):
     n_array_scipy = np.append(n_array_scipy, n)
 
-#print(res)
+print(res)
 
-##################################         Adam Method             #########################################################
+#################################         Adam Method             #########################################################
 
 t_0_adam = time.process_time()
 #initializing
@@ -138,15 +152,20 @@ eee=0
 energy_old =0
 times_shaken = 0
 
+###For the naming: 
+Regularization = 0.001
+K_max = 100
+name_run = "R001K100"
+
 for n in range(75) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
-    S_tilde = LM.S_tilde_matrix(S, 0.01)
+    S_tilde = LM.S_tilde_matrix(S, Regularization)
 
     temp_thets_ar = []
     temp_energ_ar = []
-    non_temp_k_ar = [10, 1, 0.1]
+    non_temp_k_ar = [100, 10, 1, 0.1]
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
@@ -157,7 +176,7 @@ for n in range(75) :
         temp_energ_ar = np.append(temp_energ_ar, Energ_temp)
 
     temp_thets_ar = np.reshape(temp_thets_ar, (len(non_temp_k_ar), Thets.size))
-    #arg_chosen = LM.different_regularization(temp_energ_ar, 0.01)
+    #arg_chosen = LM.different_regularization(temp_energ_ar, 0.000001)
     arg_chosen = np.argmin(temp_energ_ar)
     Thets = np.reshape(temp_thets_ar[arg_chosen], Thets.shape) ##choose the new theta's of the lowest energy
     eee = temp_energ_ar[arg_chosen] ###pick the lowest energy. 
@@ -177,8 +196,8 @@ for n in range(75) :
             print("Terminating early wrt absolute value")
             break
     if n>7:
-        #if np.abs(energy_old-energy_array_LM[n])<0.001:
-        if LM.standard_deviation(energy_array_LM, energy_array_LM[n], 0.0001): #condition on shaking
+        if np.abs(energy_old-energy_array_LM[n])<0.0001:
+        #if LM.standard_deviation(energy_array_LM, energy_array_LM[n], 0.001): #condition on shaking
             Thets = LM.shake_of_thets(Thets)
             times_shaken = times_shaken+1
         else: 
@@ -201,12 +220,18 @@ print("For Grad: ", dev_grad.num_executions)
 print("For LM (the energy executions): ", dev_lm.num_executions)
 print("For LM (The H and S calculations): ", lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs)))
 
+#####Adding it to my Panda file: 
+df = pd.read_csv(name_csv_file)
+df_temp = pd.DataFrame(energy_array_LM, columns=[name_run])
+df = pd.concat([df, df_temp], axis=1)
+df.to_csv(name_csv_file)
+
 #######Plotting
 fig, ax = plt.subplots(2,2)
-ax[0,0].plot(n_array, energy_array_LM, label='{:.2f} seconds and {} executions + hs'.format(t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
-#ax[0,0].plot(n_array2, energy_array_LM2, label='Alt method: {:.2f} seconds'.format(t_1_lm2-t_0_lm2))
+ax[0,0].plot(n_array, energy_array_LM, label='Cl, {:.2f} seconds and {} executions + hs'.format(t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
+#ax[0,0].plot(n_array2, energy_array_LM2, label='Cnl0.001, Alt method')
 ax[0,0].legend()
-ax[0,0].set_title('Linear Method with shaking, (old) reg on S 0.01 and H only')
+ax[0,0].set_title('Linear Method')
 ax[0,1].plot(n_array_adam, energy_array_adam, label='{:.2f} seconds and {} executions'.format(t_1_adam-t_0_adam, dev_adam.num_executions))
 ax[0,1].set_title('Adam')
 ax[0,1].legend()
