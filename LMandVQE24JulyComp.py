@@ -262,7 +262,7 @@ for n in range(50) :
             print("Terminating early wrt absolute value")
             break
     if n>7:
-        if np.abs(energy_old-energy_array_LM[n])<0.001:
+        if np.abs(energy_old-energy_array_LM2[n])<0.001:
         #if LM.standard_deviation(energy_array_LM2, energy_array_LM2[n], 0.001): #condition on shaking
             Thets = LM.shake_of_thets(Thets)
             times_shaken = times_shaken+1
