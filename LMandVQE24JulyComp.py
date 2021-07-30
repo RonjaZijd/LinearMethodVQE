@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import LMLibrary2 as LM  ##contains all self-made functions needed for Linear method optimization
 import copy as cp
 import time
-import pandas as pd
 
 np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
@@ -37,9 +36,8 @@ coordinates = np.array([0.0,0.0, -0.6614, 0.0,0.0, 0.6614])
 Hh, qubits = qml.qchem.molecular_hamiltonian(symbols, coordinates)
 print(Hh.ops[0].name)
 
-
+########################### From Hamiltonian to readable by the program
 H_VQE_coeffs = Hh.coeffs
-print("Test")
 H_VQE_gates = LM.hamiltonian_into_gates(Hh)
 
 
@@ -54,8 +52,6 @@ print(Hamilt_written_outt)
 no_of_gates = len(U_gates)
 no_of_wires =5
 matrix_length=12 ##starting from 1
-
-name_csv_file = "EnergyTry1.csv"
 
 ##################################            Devices          ##########################################################
 
@@ -82,17 +78,6 @@ def energy_calc(circuit, Hamilt_written_out, device, Thets):
     energ = costy(Thets)
     return energ
 
-def energy_grad(Thets):
-    global circuit
-    global Hamilt_written_outt
-    global dev2
-    Thets = np.reshape(Thets, (4,3))
-    energy_func = qml.ExpvalCost(circuit, Hamilt_written_outt, dev2)
-    grad_func = qml.grad(energy_func)
-    E_gra = grad_func(Thets)
-    #E_gra = np.reshape(E_gra, (E_gra.size, 1))
-    return E_gra.flatten()
-
 ###################################           Scipy BFGS Method        #######################################################
 energy_array_scip = []
 n_array_scipy = []
@@ -109,7 +94,7 @@ def cost_func_scipy(Thets):
 
 t_0_scipy = time.process_time()
 Thets = np.reshape(Thets, (12,1))
-res = sp.optimize.minimize(cost_func_scipy, Thets, method = 'BFGS', jac=energy_grad)
+res = sp.optimize.minimize(cost_func_scipy, Thets, method = 'BFGS')
 iterations_scipy = res.get('nfev')
 energy_scipy = res.get('fun')
 t_1_scipy = time.process_time()
@@ -117,9 +102,9 @@ t_1_scipy = time.process_time()
 for n in range(iterations_scipy):
     n_array_scipy = np.append(n_array_scipy, n)
 
-print(res)
+#print(res)
 
-#################################         Adam Method             #########################################################
+##################################         Adam Method             #########################################################
 
 t_0_adam = time.process_time()
 #initializing
@@ -172,20 +157,16 @@ eee=0
 energy_old =0
 times_shaken = 0
 
-###For the naming: 
-Regularization = 0.001
-K_max = 100
-name_run = "R001K100"
 
-for n in range(75) :
+for n in range(50) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
-    S_tilde = LM.S_tilde_matrix(S, Regularization)
+    S_tilde = LM.S_tilde_matrix(S, 0.001)
 
     temp_thets_ar = []
     temp_energ_ar = []
-    non_temp_k_ar = [100, 10, 1, 0.1]
+    non_temp_k_ar = [100,10, 1, 0.1]
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
@@ -216,8 +197,8 @@ for n in range(75) :
             print("Terminating early wrt absolute value")
             break
     if n>7:
-        if np.abs(energy_old-energy_array_LM[n])<0.0001:
-        #if LM.standard_deviation(energy_array_LM, energy_array_LM[n], 0.001): #condition on shaking
+        if np.abs(energy_old-energy_array_LM[n])<0.001:
+        #if LM.standard_deviation(energy_array_LM, energy_array_LM[n], 0.0001): #condition on shaking
             Thets = LM.shake_of_thets(Thets)
             times_shaken = times_shaken+1
         else: 
@@ -324,12 +305,6 @@ print("For Adam: ", dev_adam.num_executions)
 print("For Grad: ", dev_grad.num_executions)
 print("For LM (the energy executions): ", dev_lm.num_executions)
 print("For LM (The H and S calculations): ", lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs)))
-
-#####Adding it to my Panda file: 
-df = pd.read_csv(name_csv_file)
-df_temp = pd.DataFrame(energy_array_LM, columns=[name_run])
-df = pd.concat([df, df_temp], axis=1)
-df.to_csv(name_csv_file)
 
 #######Plotting
 fig, ax = plt.subplots(2,2)

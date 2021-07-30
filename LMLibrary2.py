@@ -49,6 +49,32 @@ def numb_to_wire(num, U_gates): #works!
     
     return wire, local_pos
 
+def hamiltonian_into_gates(H):
+    H_ops = np.array(H.ops)
+    final_array = []
+    for i in range(len(H_ops)):
+        name_ar = H.ops[i].name
+        num_ar = H.ops[i].wires.labels
+        temp_ar = []
+        for j in range(len(name_ar)):
+            name_ar[j] = name_to_index(name_ar[j])
+            fin_string = name_ar[j]+str(num_ar[j]+1)
+            temp_ar.append(fin_string)
+        final_array.append(temp_ar)   
+    return final_array
+        
+        
+def name_to_index(string):  ####should just turn this into a dictionry
+    if string=='Identity':
+        return 'I'
+    if string=='PauliX':
+        return 'X'
+    if string=='PauliY':
+        return 'Y'
+    if string=='PauliZ':
+        return 'Z'
+    return 0 
+
 #######################      subcircuits        ###################################################################
 
 def special_circ_creator(int1, int2, U_gates, Thets):
@@ -157,6 +183,8 @@ def c_notting_hamil(input_array): ##doesn't change when extending it to multiple
         wire = int(as_characters[1])
         generator_creator(gate, wire)
         i=i+1
+        
+
 
 def circuit(params, wires):
     qml.BasisState(np.array([1, 1, 0, 0], requires_grad=False), wires=wires)   ##let's try taking this one away and see what it does
