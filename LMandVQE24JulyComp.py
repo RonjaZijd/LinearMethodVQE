@@ -162,7 +162,7 @@ for n in range(50) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
-    S_tilde = LM.S_tilde_matrix(S, 0.001)
+    S_tilde = LM.S_tilde_matrix(S, 0.1)
 
     temp_thets_ar = []
     temp_energ_ar = []
@@ -231,7 +231,7 @@ for n in range(50) :
 
     temp_thets_ar = []
     temp_energ_ar = []
-    non_temp_k_ar = [1000, 100, 10, 1, 0.1]
+    non_temp_k_ar = [100, 10, 1, 0.1]
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
@@ -280,24 +280,6 @@ for n in range(50) :
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ######printing information related to scaling
 print("Executions used per device: ")
 print("For scipy: ", dev_scipy.num_executions)
@@ -308,8 +290,8 @@ print("For LM (The H and S calculations): ", lm_scaling(Thets.size, len(non_temp
 
 #######Plotting
 fig, ax = plt.subplots(2,2)
-ax[0,0].plot(n_array, energy_array_LM, label='K100, {:.2f} seconds and {} executions + hs'.format(t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
-ax[0,0].plot(n_array2, energy_array_LM2, label='K1000')
+ax[0,0].plot(n_array, energy_array_LM, label='S0.1, {:.2f} seconds and {} executions + hs'.format(t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
+ax[0,0].plot(n_array2, energy_array_LM2, label='S0.001')
 ax[0,0].legend()
 ax[0,0].set_title('Linear Method')
 ax[0,1].plot(n_array_adam, energy_array_adam, label='{:.2f} seconds and {} executions'.format(t_1_adam-t_0_adam, dev_adam.num_executions))
