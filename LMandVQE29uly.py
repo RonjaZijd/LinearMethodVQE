@@ -157,7 +157,9 @@ Regularization = 0.01
 K_max = 109
 name_run = "R01K100"
 
+
 for n in range(100) :
+
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
@@ -212,6 +214,85 @@ t_1_lm = time.process_time()
 
 lm_scaling = lambda n, k, H_len : ((n*n+n)*H_len + (n*n-n)) #lambda function to calculate how many times circ is done to get H and S
 
+
+n_array2 = []
+energy_array_LM2 = []
+Thets=Thets_start
+eee=LM.energy_calc(circuit, Hamilt_written_outt, dev_lm, Thets)
+energy_old =0
+times_shaken = 0
+
+for n in range(50) :
+    H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
+    S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
+    
+    S_tilde = LM.S_tilde_matrix(S, 0.1)
+
+    temp_thets_ar = []
+    temp_energ_ar = []
+    non_temp_k_ar = [100, 10, 1, 0.1]
+    
+    for k in non_temp_k_ar: 
+        H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
+        update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
+        Thets_temp = LM.new_thetsy(update, Thets)
+        Energ_temp = LM.energy_calc(circuit, Hamilt_written_outt, dev_lm, Thets_temp)
+        temp_thets_ar = np.append(temp_thets_ar, Thets_temp)
+        temp_energ_ar = np.append(temp_energ_ar, Energ_temp)
+
+    temp_thets_ar = np.reshape(temp_thets_ar, (len(non_temp_k_ar), Thets.size))
+    #arg_chosen = LM.different_regularization(temp_energ_ar, 0.000001)
+    arg_chosen = np.argmin(temp_energ_ar)
+    Thets = np.reshape(temp_thets_ar[arg_chosen], Thets.shape) ##choose the new theta's of the lowest energy
+    eee = temp_energ_ar[arg_chosen] ###pick the lowest energy. 
+    energy_array_LM2 = np.append(energy_array_LM2, eee)
+    n_array2 = np.append(n_array2, n)
+
+    print("---------------------------------------------------------------------------------------------------") #printing things to see what the program is doing
+    print("Iteration: ", n)
+    print("This is temp_energ_ar: ")
+    print(temp_energ_ar)
+    print(np.argmin(temp_energ_ar))
+    print(eee)
+    # print("These are the paramters: ")  #don't want to print the theta's for now
+    # print(Thets % (2*np.pi))
+
+    if energy_array_LM[n]<(-1.08):
+            print("Terminating early wrt absolute value")
+            break
+    if n>7:
+        if np.abs(energy_old-energy_array_LM2[n])<0.0001:
+        #if LM.standard_deviation(energy_array_LM, energy_array_LM[n], 0.001): #condition on shaking
+            Thets = LM.shake_of_thets(Thets)
+            times_shaken = times_shaken+1
+        else: 
+            times_shaken = 0
+    print("Times shaken is: ", times_shaken)
+    if times_shaken>3:
+        Thets = LM.big_shake(Thets)
+        print("Big Shake")
+    energy_old = energy_array_LM2[n]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ######printing information related to scaling
 print("Executions used per device: ")
 print("For scipy: ", dev_scipy.num_executions)
@@ -241,8 +322,8 @@ df.to_csv(name_csv_file)
 
 #######Plotting
 fig, ax = plt.subplots(2,2)
-ax[0,0].plot(n_array, energy_array_LM, label='Cl, {:.2f} seconds and {} executions + hs'.format(t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
-#ax[0,0].plot(n_array2, energy_array_LM2, label='Cnl0.001, Alt method')
+ax[0,0].plot(n_array, energy_array_LM, label='S0.01, {:.2f} seconds and {} executions + hs'.format(t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
+ax[0,0].plot(n_array2, energy_array_LM2, label='S0.1, Alt method')
 ax[0,0].legend()
 ax[0,0].set_title('Linear Method')
 ax[0,1].plot(n_array_adam, energy_array_adam, label='{:.2f} seconds and {} executions'.format(t_1_adam-t_0_adam, dev_adam.num_executions))
