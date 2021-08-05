@@ -157,11 +157,9 @@ Regularization = 0.01
 K_max = 109
 name_run = "R01K100"
 
-<<<<<<< HEAD
-for n in range(50) :
-=======
+
 for n in range(100) :
->>>>>>> bf4a02e45913365b6f82862ff9c4fe8d94cf6816
+
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
