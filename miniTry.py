@@ -1,16 +1,17 @@
 
 import pennylane as qml
 from pennylane import numpy as np
-import copy as cp
-import TryOutLibrary as TL
+#import copy as cp
+#import TryOutLibrary as TL
 import matplotlib.pyplot as plt
 import pandas as pd
 
-name_LM_file = "S001try2.csv"
-name_opt_energ_file = "S001energ.csv"
-name_opt_time_file = "S001time.csv"
-name_opt_exec_file = "S001ex.csv"
-name_opt_iter_file = "S001it.csv"
+name_LM_file = "S0tr.csv"
+name_opt_energ_file = "S0energ.csv"
+name_opt_time_file = "S0time.csv"
+name_opt_exec_file = "S0ex.csv"
+name_opt_iter_file = "S0it.csv"
+
 
 df_LM = pd.read_csv(name_LM_file)
 df_en = pd.read_csv(name_opt_energ_file)

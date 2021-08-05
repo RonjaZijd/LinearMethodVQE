@@ -231,7 +231,7 @@ for n in range(50) :
 
     temp_thets_ar = []
     temp_energ_ar = []
-    non_temp_k_ar = [100, 10, 1, 0.1]
+    non_temp_k_ar = [100, 10, 1, 0.2, 0.05, 0.01, 0.8, 0.005, 0.1]
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
@@ -242,7 +242,7 @@ for n in range(50) :
         temp_energ_ar = np.append(temp_energ_ar, Energ_temp)
 
     temp_thets_ar = np.reshape(temp_thets_ar, (len(non_temp_k_ar), Thets.size))
-    arg_chosen = LM.different_regularization(temp_energ_ar, 0.00001)
+    arg_chosen = LM.different_regularization(temp_energ_ar, 0.001)
     #arg_chosen = np.argmin(temp_energ_ar)
     Thets = np.reshape(temp_thets_ar[arg_chosen], Thets.shape) ##choose the new theta's of the lowest energy
     eee = temp_energ_ar[arg_chosen] ###pick the lowest energy. 

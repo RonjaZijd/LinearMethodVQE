@@ -14,7 +14,7 @@ import copy as cp
 import time
 import pandas as pd
 
-np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
+np.set_printoptions(suppress=True, precision=4, formatter={'float_kind':'{:0.2f}'.format})
 
 #######################    input information        ##############################################################
 
@@ -157,7 +157,11 @@ Regularization = 0.01
 K_max = 109
 name_run = "R01K100"
 
+<<<<<<< HEAD
 for n in range(50) :
+=======
+for n in range(100) :
+>>>>>>> bf4a02e45913365b6f82862ff9c4fe8d94cf6816
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
@@ -165,7 +169,7 @@ for n in range(50) :
 
     temp_thets_ar = []
     temp_energ_ar = []
-    non_temp_k_ar = [100, 10, 1, 0.1]
+    non_temp_k_ar = [100, 10, 1, 0.2, 0.05, 0.01, 0.5, 0.9, 0.8, 0.005, 0.4, 0.07, 0.6, 0.1]
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
@@ -176,8 +180,8 @@ for n in range(50) :
         temp_energ_ar = np.append(temp_energ_ar, Energ_temp)
 
     temp_thets_ar = np.reshape(temp_thets_ar, (len(non_temp_k_ar), Thets.size))
-    #arg_chosen = LM.different_regularization(temp_energ_ar, 0.000001)
-    arg_chosen = np.argmin(temp_energ_ar)
+    arg_chosen = LM.different_regularization(temp_energ_ar, 0.001)
+    #arg_chosen = np.argmin(temp_energ_ar)
     Thets = np.reshape(temp_thets_ar[arg_chosen], Thets.shape) ##choose the new theta's of the lowest energy
     eee = temp_energ_ar[arg_chosen] ###pick the lowest energy. 
     energy_array_LM = np.append(energy_array_LM, eee)
@@ -192,7 +196,7 @@ for n in range(50) :
     # print("These are the paramters: ")  #don't want to print the theta's for now
     # print(Thets % (2*np.pi))
 
-    if energy_array_LM[n]<(-1.08):
+    if energy_array_LM[n]<(-1.09):
             print("Terminating early wrt absolute value")
             break
     if n>7:
@@ -304,9 +308,14 @@ print("For LM (The H and S calculations): ", lm_scaling(Thets.size, len(non_temp
 
 
 #####Adding it to my Panda file: 
-df = pd.read_csv(name_csv_file)
+
 df_temp = pd.DataFrame(energy_array_LM, columns=[name_run])
+#df_temp.to_csv(name_csv_file)
+
+
+df = pd.read_csv(name_csv_file)
 df = pd.concat([df, df_temp], axis=1)
+df_lm.drop(columns=df_lm.columns[0], axis=1, inplace=True)
 df.to_csv(name_csv_file)
 
 
