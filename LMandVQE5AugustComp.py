@@ -17,6 +17,7 @@ from scipy.interpolate import interp1d
 from IPython import get_ipython
 
 np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
+name_opt_energ_file = "100ks15itsstats.csv"
 
 #######################    input information        ##############################################################
 
@@ -175,7 +176,7 @@ def finding_start_of_tail(array, k_array, tol):
 
 print("I've started running!")
 
-for n in range(5) :
+for n in range(15) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
@@ -230,13 +231,13 @@ for n in range(5) :
     #print("Energy w/ interpolation: ", e_e)
     #plt.plot(non_temp_k_ar, temp_energ_ar, 'o', knew, f(knew), '-', knew, f2(knew), '--', knew, f3(knew), '-.')
     #plt.legend(['data', 'linear', 'cubic', 'quadratic'], loc='best')
-    plt.scatter(non_temp_k_ar, temp_energ_ar)
+    #plt.scatter(non_temp_k_ar, temp_energ_ar)
     #plt.xlabel('k-value')
     #plt.ylabel('Energy')
     #plt.title('K-cutoff point:', max_k)
-    plt.plot(non_temp_k_ar, temp_energ_ar)
-    get_ipython().run_line_magic('matplotlib', 'inline')
-    plt.show()
+    #plt.plot(non_temp_k_ar, temp_energ_ar)
+    #get_ipython().run_line_magic('matplotlib', 'inline')
+    #plt.show()
     print("These are the paramters: ")  #don't want to print the theta's for now
     print(Thets % (2*np.pi))
 
@@ -269,6 +270,24 @@ print("For Grad: ", dev_grad.num_executions)
 print("For LM (the energy executions): ", dev_lm.num_executions)
 print("For LM (The H and S calculations): ", lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs)))
 
+
+
+################For the stats
+
+energy_lm = energy_array_LM[-1]
+energy_adam = energy_array_adam[-1]
+energy_grad = energy_array_grad[-1]
+energy_scipy = energy_array_scip[-1]
+
+energy_dic = {"LM":[energy_lm], "Adam": [energy_adam], "Grad": [energy_grad], "SciPy": [energy_scipy]}
+energy_dic2 = {"LM":energy_lm, "Adam": energy_adam, "Grad": energy_grad, "SciPy": energy_scipy}
+df_temp_en_opt = pd.DataFrame(energy_dic)
+#df_temp_en_opt.to_csv(name_opt_energ_file) #only unselect the first time running it:
+
+df_en_opt = pd.read_csv(name_opt_energ_file)
+df_en_opt = df_en_opt.append(energy_dic2, ignore_index=True, sort=False)
+df_en_opt.drop(columns=df_en_opt.columns[0], axis=1, inplace=True)
+df_en_opt.to_csv(name_opt_energ_file)
 
 
 
@@ -305,5 +324,5 @@ ax[1,1].legend()
 for axi in ax.flat:
     axi.set(xlabel='Iterations', ylabel='Energy')
 
-get_ipython().run_line_magic('matplotlib', 'tk')
+#get_ipython().run_line_magic('matplotlib', 'tk')
 plt.show()
