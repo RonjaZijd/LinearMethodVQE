@@ -74,7 +74,7 @@ def energy_grad(Thets):
     #E_gra = np.reshape(E_gra, (E_gra.size, 1))
     return E_gra.flatten()
 
-###################################           Scipy BFGS Method        #######################################################
+##################################           Scipy BFGS Method        #######################################################
 energy_array_scip = []
 n_array_scipy = []
 
@@ -142,19 +142,20 @@ for n in range(700):
     n_array_grad = np.append(n_array_grad, n)
 t_1_grad = time.process_time()  
  
-##################################           Linear Method        ###########################################
+#################################           Linear Method        ###########################################
 
 t_0_lm = time.process_time()
 #Initializing
 n_array = []
 energy_array_LM = []
+#Thets_start = np.array([[3.69, 1.80, 5.10], [0.07, 4.12, 0.79], [3.45, 6.18, 2.93], [6.24, 2.62, 2.85]])
 Thets=Thets_start
 eee=0
 energy_old =0
 times_shaken = 0
 
 ###For the naming: 
-Regularization = 0.01
+Regularization = 0
 K_max = 109
 name_run = "R01K100"
 
@@ -171,7 +172,7 @@ def finding_start_of_tail(array, k_array, tol):
             break
     return k_max
 
-
+print("I've started running!")
 
 for n in range(5) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
@@ -182,7 +183,7 @@ for n in range(5) :
     temp_thets_ar = []
     temp_energ_ar = []
     #non_temp_k_ar = [1, 0.2, 0.4, 0.6, 0.8, 0]
-    non_temp_k_ar = np.linspace(0, max_k, 50, endpoint=True)
+    non_temp_k_ar = np.linspace(0, max_k, 100, endpoint=True)
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
@@ -193,17 +194,17 @@ for n in range(5) :
         temp_energ_ar = np.append(temp_energ_ar, Energ_temp)
     full_temp_energ_ar = []
     #using interpolation to choose the appropriate k value and using that to update:
-    f2 = interp1d(non_temp_k_ar, temp_energ_ar, kind='cubic')
-    f = interp1d(non_temp_k_ar,  temp_energ_ar)
-    f3 = interp1d(non_temp_k_ar,  temp_energ_ar, kind='quadratic')
-    knew = xnew = np.linspace(np.min(non_temp_k_ar), np.max(non_temp_k_ar), num=41, endpoint=True)
-    for k in knew: 
-        full_temp_energ_ar = np.append(full_temp_energ_ar, f2(k))
-    k_chosen = knew[np.argmin(full_temp_energ_ar)]
-    H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k_chosen)
-    update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
-    Thets_very_temp = LM.new_thetsy(update, Thets)
-    e_e = LM.energy_calc(circuit, Hamilt_written_outt, dev_lm, Thets_very_temp)
+    # f2 = interp1d(non_temp_k_ar, temp_energ_ar, kind='cubic')
+    # f = interp1d(non_temp_k_ar,  temp_energ_ar)
+    # f3 = interp1d(non_temp_k_ar,  temp_energ_ar, kind='quadratic')
+    # knew = xnew = np.linspace(np.min(non_temp_k_ar), np.max(non_temp_k_ar), num=41, endpoint=True)
+    # for k in knew: 
+    #     full_temp_energ_ar = np.append(full_temp_energ_ar, f2(k))
+    # k_chosen = knew[np.argmin(full_temp_energ_ar)]
+    # H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k_chosen)
+    # update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
+    # Thets_very_temp = LM.new_thetsy(update, Thets)
+    # e_e = LM.energy_calc(circuit, Hamilt_written_outt, dev_lm, Thets_very_temp)
 
     temp_thets_ar = np.reshape(temp_thets_ar, (len(non_temp_k_ar), Thets.size))
     # #arg_chosen = LM.different_regularization(temp_energ_ar, 0.000001)
@@ -222,14 +223,20 @@ for n in range(5) :
     print("This is temp_energ_ar: ")
     print(temp_energ_ar)
     print(np.argmin(temp_energ_ar))
-    print(k_chosen)
+    #print("K chosen using interpolation", k_chosen)
+    print("Actual k chosen", non_temp_k_ar[arg_chosen])
     print("Energy chosen: ", eee)
-    print("Energy w/ interpolation: ", e_e)
-    plt.plot(non_temp_k_ar, temp_energ_ar, 'o', knew, f(knew), '-', knew, f2(knew), '--', knew, f3(knew), '-.')
-    plt.legend(['data', 'linear', 'cubic', 'quadratic'], loc='best')
+    #print("Energy w/ interpolation: ", e_e)
+    #plt.plot(non_temp_k_ar, temp_energ_ar, 'o', knew, f(knew), '-', knew, f2(knew), '--', knew, f3(knew), '-.')
+    #plt.legend(['data', 'linear', 'cubic', 'quadratic'], loc='best')
+    plt.scatter(non_temp_k_ar, temp_energ_ar)
+    #plt.xlabel('k-value')
+    #plt.ylabel('Energy')
+    #plt.title('K-cutoff point:', max_k)
+    plt.plot(non_temp_k_ar, temp_energ_ar)
     plt.show()
-    # print("These are the paramters: ")  #don't want to print the theta's for now
-    # print(Thets % (2*np.pi))
+    print("These are the paramters: ")  #don't want to print the theta's for now
+    print(Thets % (2*np.pi))
 
     if energy_array_LM[n]<(-1.095):
             print("Terminating early wrt absolute value")
@@ -274,7 +281,7 @@ df.to_csv(name_csv_file)
 
 
 
-#######Plotting
+######Plotting
 fig, ax = plt.subplots(2,2)
 ax[0,0].plot(n_array, energy_array_LM, label='S0.01, {:.2f} seconds and {} executions + hs'.format(t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
 #ax[0,0].plot(n_array2, energy_array_LM2, label='S0.1, Alt method')
