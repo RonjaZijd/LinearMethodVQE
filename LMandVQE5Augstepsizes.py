@@ -310,3 +310,6 @@ energy_array_LM = energy_array_LM + global_minimum
 #     axi.set(xlabel='Iterations', ylabel='Energy')
 
 # plt.show()
+
+
+
