@@ -196,9 +196,9 @@ def circuit(params, wires):
 
 ###########################################      Devices      ###########################################################
 
-dev = qml.device('default.qubit', wires=5)
-dev2 = qml.device('default.qubit', wires=4)
-dev3 = qml.device('default.qubit', wires=3)
+dev = qml.device('default.qubit', wires=13)
+dev2 = qml.device('default.qubit', wires=12)
+dev3 = qml.device('default.qubit', wires=11)
 
 @qml.qnode(dev3)
 def real_circ_S_newy(int1, int2, U_gates, Thets):
