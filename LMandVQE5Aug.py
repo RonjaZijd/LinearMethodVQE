@@ -168,13 +168,17 @@ def finding_start_of_tail(array, k_array, tol):
         k_max = k_array[-i]
         #print("The difference with k", k_array[i])
         if np.abs(compare_val-array[-1-i])>tol:
-            print("Tail ends at: ", k_max)
-            break
+            if i>5:
+                print("Tail ends at: ", k_array[-i+4])
+                k_max = k_array[-i+4] #so that it doesn't completely cut off the tail
+                break
+            else:
+                print("Tail ends at: ", k_max)
     return k_max
 
 print("I've started running!")
 
-for n in range(75) :
+for n in range(25) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     
@@ -183,7 +187,7 @@ for n in range(75) :
     temp_thets_ar = []
     temp_energ_ar = []
     #non_temp_k_ar = [1, 0.2, 0.4, 0.6, 0.8, 0]
-    non_temp_k_ar = np.linspace(0, max_k, 100, endpoint=True)
+    non_temp_k_ar = np.linspace(0.00001, max_k, 100, endpoint=True)
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
@@ -212,7 +216,7 @@ for n in range(75) :
     Thets = np.reshape(temp_thets_ar[arg_chosen], Thets.shape) ##choose the new theta's of the lowest energy
     eee = temp_energ_ar[arg_chosen] ###pick the lowest energy. 
 
-    max_k = finding_start_of_tail(temp_energ_ar, non_temp_k_ar, 0.02)
+    max_k = finding_start_of_tail(temp_energ_ar, non_temp_k_ar, 0.001)
 
 
     energy_array_LM = np.append(energy_array_LM, eee)
@@ -230,8 +234,8 @@ for n in range(75) :
     #plt.plot(non_temp_k_ar, temp_energ_ar, 'o', knew, f(knew), '-', knew, f2(knew), '--', knew, f3(knew), '-.')
     #plt.legend(['data', 'linear', 'cubic', 'quadratic'], loc='best')
     #plt.scatter(non_temp_k_ar, temp_energ_ar)
-    #plt.xlabel('k-value')
-    #plt.ylabel('Energy')
+    plt.xlabel('k-value')
+    plt.ylabel('Energy')
     #plt.title('K-cutoff point:', max_k)
     #plt.plot(non_temp_k_ar, temp_energ_ar)
     #plt.show()

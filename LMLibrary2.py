@@ -396,7 +396,7 @@ def S_tilde_matrix(S_matrix, k):
 
 ######################################          Functions for the optimization         ##################################
 
-def smallest_real_w_norm_optimiz(S_til, H_til):
+def smallest_real_w_norm_optimiz(H_til, S_til):
     eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
@@ -461,3 +461,14 @@ def different_regularization(Array, tolerance):
             lowest_energies = np.append(lowest_energies, sorted_array[i])
     #print(lowest_energies)
     return int(np.amax(lowest_energies))
+
+def finding_start_of_tail(array, k_array, tol):
+    compare_val = array[-1]
+    print("The compare value is: ", compare_val)
+    for i in range(len(k_array)):
+        k_max = k_array[-i]
+        #print("The difference with k", k_array[i])
+        if np.abs(compare_val-array[-1-i])>tol:
+            print("Tail ends at: ", k_max)
+            break
+    return k_max
