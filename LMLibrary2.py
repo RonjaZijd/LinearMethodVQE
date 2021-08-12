@@ -3,6 +3,8 @@ from pennylane import numpy as np
 import scipy as sp
 
 I_mat = [[1,0], [0,1]]
+shapy = (12,2)
+
 
 ######################      gates                    #############################################################
 
@@ -259,7 +261,7 @@ def total_ham_element(int1, int2, U_gates, Thets, hamiltonian_array, Hamil_coefs
         Ham = Ham + Hamil_coefs[i]*small_h  
         HamC = HamC + Hamil_coefs[i]*small_conj_h   
         i=i+1
-
+    print("Calculated ham element")
     return Ham, HamC
 
 def E_grad(Thets, Hamiltonian, circuit, device):
@@ -289,6 +291,7 @@ def H_Matrix_final_calc(U_gates, Thets, Hamil_array, Hamil_coeffs, entangle_gate
                 H, Hc = total_ham_element(i, j, U_gates, Thets, Hamil_array, Hamil_coeffs, entangle_gates)
                 H_matrix[i][j] = (1/4)*H
                 H_matrix[j][i] = (1/4)*Hc  ##and the complex conjugate
+                print("added another element to h matrix")
             j=j+1
         i=i+1
     
@@ -305,7 +308,7 @@ def S_Matrix_final_calc(U_gates, Thets):
                 real_part = real_circ_S(i,n, U_gates, Thets)
                 #print(real_circ_S.draw())
                 imaginary_part = imagin_circ_S(i,n,U_gates, Thets)
-
+                print("added element to s matrix")
                 ###putting it into an S matrix: 
                 S_matrix[i][n] = (1/4)*(real_part+imaginary_part*1j)
                 S_matrix[n][i] = (1/4)*(real_part-imaginary_part*1j) ###conjugate and imaginary!
@@ -405,17 +408,18 @@ def smallest_real_w_norm_optimiz(H_til, S_til):
 def new_thetsy(eigvec, Thets):
     #need to update Thets but without the second lement
     eigvec = np.delete(eigvec, 0) #taking off the first element: 
-    thetsy = np.reshape(np.real(eigvec), (4,3))
+    thetsy = np.reshape(np.real(eigvec), shapy)
+
     scaling_factor = 1
     thets = Thets + scaling_factor*thetsy
     return thets
 
 def shake_of_thets(Thets):
-    shake = np.random.uniform(-1,1,(4,3))
+    shake = np.random.uniform(-1,1,shapy)
     return Thets+(shake/100)
 
 def big_shake(Thets):
-    shake = np.random.uniform(-1,1,(4,3))
+    shake = np.random.uniform(-1,1,shapy)
     return Thets+(shake/10)
 
 
