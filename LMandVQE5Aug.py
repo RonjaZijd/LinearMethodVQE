@@ -181,9 +181,14 @@ print("I've started running!")
 for n in range(25) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
-    
+    print("Is S invertible? Its determinant is: ")
+    print(np.linalg.det(S))
     S_tilde = LM.S_tilde_matrix(S, Regularization)
-
+    print("Is S-tilde invertible? Its determinant is: ")
+    print(np.linalg.det(S_tilde))
+    print("What is the condition number of S?: ")
+    print(np.linalg.cond(S_tilde))
+    print()
     temp_thets_ar = []
     temp_energ_ar = []
     #non_temp_k_ar = [1, 0.2, 0.4, 0.6, 0.8, 0]
@@ -191,6 +196,8 @@ for n in range(25) :
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
+        print("What is the condition number of H_Tilde?")
+        print(np.linalg.cond(H_tilde))
         update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
         Thets_temp = LM.new_thetsy(update, Thets)
         Energ_temp = LM.energy_calc(circuit, Hamilt_written_outt, dev_lm, Thets_temp)
@@ -245,18 +252,18 @@ for n in range(25) :
     if energy_array_LM[n]<(-1.095):
             print("Terminating early wrt absolute value")
             break
-    if n>7:
-        if np.abs(energy_old-energy_array_LM[n])<0.0001:
-        #if LM.standard_deviation(energy_array_LM, energy_array_LM[n], 0.001): #condition on shaking
-            Thets = LM.shake_of_thets(Thets)
-            times_shaken = times_shaken+1
-        else: 
-            times_shaken = 0
-    print("Times shaken is: ", times_shaken)
-    if times_shaken>3:
-        Thets = LM.big_shake(Thets)
-        print("Big Shake")
-    energy_old = energy_array_LM[n]
+    # if n>7:
+    #     if np.abs(energy_old-energy_array_LM[n])<0.0001:
+    #     #if LM.standard_deviation(energy_array_LM, energy_array_LM[n], 0.001): #condition on shaking
+    #         Thets = LM.shake_of_thets(Thets)
+    #         times_shaken = times_shaken+1
+    #     else: 
+    #         times_shaken = 0
+    # print("Times shaken is: ", times_shaken)
+    # if times_shaken>3:
+    #     Thets = LM.big_shake(Thets)
+    #     print("Big Shake")
+    # energy_old = energy_array_LM[n]
 
 t_1_lm = time.process_time()
 
