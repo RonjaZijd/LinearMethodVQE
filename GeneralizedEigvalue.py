@@ -14,16 +14,20 @@ B = np.random.normal(0, 1000, (size,size))
 matrixA = (A + A.T)/2 ##this makes the matrices symmetric
 matrixB = (B + B.T)/2
 print(matrixA)
+print(matrixB)
 
 #now making B positive definite:
 eigvaly_B, eigvecy_B = np.linalg.eigh(matrixB)
+print("Eigenvalue and eigvectors of very original B: ")
+print(eigvaly_B)
+print(eigvecy_B)
 additi = np.abs(np.min(np.array(eigvaly_B)))
 for i in range(len(matrixB)):
     for j in range(len(matrixB[i])):
         if i==j: #aka the diagonal
             matrixB[i][j] = matrixB[i][j]+additi
 
-eigvaly_B_after_pos_def = np.linalg.eigh(matrixB)
+eigvaly_B_after_pos_def, eigvecty_after_pos_def = np.linalg.eigh(matrixB)
 print(eigvaly_B_after_pos_def)
 #apparently I now have infs or nan's somewhere
 

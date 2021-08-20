@@ -32,7 +32,6 @@ def creating_sub_matrix(array):
     print(St)
     for i in range(len(array)-2):
         St = np.kron(gates_dict.get(str(array[-3-i])), St)
-    print("Test3")
     return St
 
 for i in range(len(H_gates)):
@@ -40,11 +39,8 @@ for i in range(len(H_gates)):
     for j in range(len(H_gates[i])):
         as_characters = list(H_gates[i][j])
         gate = as_characters[0]
-        print("Test0")
         wire = int(as_characters[1])
         matrices_on_wires[wire-1] = gate
-    print(matrices_on_wires)
-    print("Test1")
     sub_mat = creating_sub_matrix(matrices_on_wires)
     Hamil_matrix = Hamil_matrix + sub_mat
 
