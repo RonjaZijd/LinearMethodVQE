@@ -178,7 +178,7 @@ t_0_lm = time.process_time()
 #Initializing
 n_array = []
 energy_array_LM = []
-#Thets_start = np.array([[3.69, 1.80, 5.10], [0.07, 4.12, 0.79], [3.45, 6.18, 2.93], [6.24, 2.62, 2.85]])
+Thets_start = np.array([[3.28, 4.61], [5.71, 2.27], [2.75, 2.63], [4.56, 4.29],[6.05, 1.82], [1.88, 4.95], [0.13, 0.60], [2.00, 1.43], [4.72, 6.18], [1.78, 4.98], [3.33, 1.05], [2.84, 0.85]])
 Thets=Thets_start
 eee=0
 energy_old =0
@@ -263,12 +263,11 @@ for n in range(5) :
     plt.scatter(non_temp_k_ar, temp_energ_ar)
     plt.xlabel('k-value')
     #lt.ylabel('Energy')
-    plt.title('K-cutoff point:', max_k)
     plt.plot(non_temp_k_ar, temp_energ_ar)
     #get_ipython().run_line_magic('matplotlib', 'inline')
     plt.show()
-    #print("These are the paramters: ")  #don't want to print the theta's for now
-    #print(Thets % (2*np.pi)) #not surewhy thisd didntwoork just now
+    print("These are the paramters: ")  #don't want to print the theta's for now
+    print(Thets % (2*np.pi)) #not surewhy thisd didntwoork just now
 
     #if energy_array_LM[n]<(-1.095):
     #        print("Terminating early wrt absolute value")
