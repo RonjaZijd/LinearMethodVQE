@@ -3,7 +3,7 @@ from pennylane import numpy as np
 import scipy as sp
 
 I_mat = [[1,0], [0,1]]
-shapy = (12,2)
+shapy = (4,3)
 
 
 ######################      gates                    #############################################################
@@ -261,7 +261,7 @@ def total_ham_element(int1, int2, U_gates, Thets, hamiltonian_array, Hamil_coefs
         Ham = Ham + Hamil_coefs[i]*small_h  
         HamC = HamC + Hamil_coefs[i]*small_conj_h   
         i=i+1
-    print("Calculated ham element")
+    #print("Calculated ham element")
     return Ham, HamC
 
 def E_grad(Thets, Hamiltonian, circuit, device):
@@ -291,7 +291,7 @@ def H_Matrix_final_calc(U_gates, Thets, Hamil_array, Hamil_coeffs, entangle_gate
                 H, Hc = total_ham_element(i, j, U_gates, Thets, Hamil_array, Hamil_coeffs, entangle_gates)
                 H_matrix[i][j] = (1/4)*H
                 H_matrix[j][i] = (1/4)*Hc  ##and the complex conjugate
-                print("added another element to h matrix")
+                #print("added another element to h matrix")
             j=j+1
         i=i+1
     
@@ -399,8 +399,38 @@ def S_tilde_matrix(S_matrix, k):
 
 ######################################          Functions for the optimization         ##################################
 
+def my_gen_solve(matrixA, matrixB, size):
+    eigvalsB_mat = np.zeros((size, size), dtype=np.complex128)
+    eigvalsB_mat_special = np.zeros((size, size), dtype = np.complex128)
+
+    eigvals_B, eigvecs_B = np.linalg.eig(matrixB)
+    eigvecs_B = np.matrix.transpose(eigvecs_B) #to have the columns be the eigenvectors
+
+    for i in range(size):
+        for j in range(size):
+            if i==j: #only along the diagonal
+                eigvalsB_mat[i][j] = eigvals_B[i]
+                if eigvals_B[i] == 0: 
+                    eigvalsB_mat_special[i][j] = 0
+                else:  
+                    eigvalsB_mat_special[i][j] = 1/(np.sqrt(eigvals_B[i]))
+
+    eigvecB_tilde = np.matmul(eigvecs_B, eigvalsB_mat_special) #we don't have to transpose B_tilde, because it's already made with the correct things
+    A1 = np.matmul(matrixA, eigvecB_tilde)
+    matrixA_tilde = np.matmul((np.matrix.transpose(eigvecB_tilde)), A1) #seems to work
+    eigvalsA, eigvecsA = np.linalg.eig(matrixA_tilde)
+    eigvecsA = np.matrix.transpose(eigvecsA)
+    final_eigvec = np.matmul(eigvecB_tilde, eigvecsA)
+
+    return eigvalsA, final_eigvec
+
+
+
+
+
 def smallest_real_w_norm_optimiz(H_til, S_til):
     eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
+    #eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
     return eigvec_wanted_normed
@@ -473,6 +503,20 @@ def finding_start_of_tail(array, k_array, tol):
         k_max = k_array[-i]
         #print("The difference with k", k_array[i])
         if np.abs(compare_val-array[-1-i])>tol:
-            print("Tail ends at: ", k_max)
-            break
+            if i>5:
+                print("Tail ends at: ", k_array[-i+4])
+                k_max = k_array[-i+4] #so that it doesn't completely cut off the tail
+                break
+            else:
+                print("Tail ends at: ", k_max)
     return k_max
+
+def is_sparse(array):
+    n_of_elements = array.size
+    tol = 0.000000001
+    zero_count  = 0
+    for i in range(len(array)):
+        for j in range(len(array[i])):
+            if np.abs(array[i][j])<tol: 
+                zero_count = zero_count+1
+    return zero_count>(n_of_elements/2)
