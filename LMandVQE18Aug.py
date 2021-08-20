@@ -157,7 +157,7 @@ n_of_S_sparse = 0
 n_of_H_sparse = 0
 condition_array_H = []
 ###For the naming: 
-Regularization = 0.001
+Regularization = 0.01
 K_max = 109
 name_run = "R01K100"
 
@@ -165,7 +165,7 @@ max_k =1
 
 print("I've started running!")
 
-for n in range(10) :
+for n in range(20) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
     print("Is S invertible? Its determinant is: ")
@@ -221,19 +221,19 @@ for n in range(10) :
 
 
     ############plottingg########################################
-    fig, (ax1, ax2) = plt.subplots(2,1)
-    #plt.legend(['data', 'linear', 'cubic', 'quadratic'], loc='best')
-    ax1.scatter(non_temp_k_ar, temp_energ_ar)
-    #plt.xlabel('k-value')
-    #plt.ylabel('Energy')
-    #plt.title('K-cutoff point:', max_k)
-    ax1.plot(non_temp_k_ar, temp_energ_ar, label = f'Condition number S: {np.linalg.cond(S_tilde)}, not converged: {n_of_times_not_converged}')
-    ax1.legend()
-    ax2.set(xlabel='K-value', ylabel = 'Condition number H')
-    ax1.set(ylabel='Energy')
-    ax2.scatter(non_temp_k_ar, condition_array_H, label=f'Condition number S: {np.linalg.cond(S_tilde)}')
-    ax2.legend()
-    plt.show()
+    # fig, (ax1, ax2) = plt.subplots(2,1)
+    # #plt.legend(['data', 'linear', 'cubic', 'quadratic'], loc='best')
+    # ax1.scatter(non_temp_k_ar, temp_energ_ar)
+    # #plt.xlabel('k-value')
+    # #plt.ylabel('Energy')
+    # #plt.title('K-cutoff point:', max_k)
+    # ax1.plot(non_temp_k_ar, temp_energ_ar, label = f'Condition number S: {np.linalg.cond(S_tilde)}, not converged: {n_of_times_not_converged}')
+    # ax1.legend()
+    # ax2.set(xlabel='K-value', ylabel = 'Condition number H')
+    # ax1.set(ylabel='Energy')
+    # ax2.scatter(non_temp_k_ar, condition_array_H, label=f'Condition number S: {np.linalg.cond(S_tilde)}')
+    # ax2.legend()
+    # plt.show()
     print("These are the paramters: ")  #don't want to print the theta's for now
     print(Thets % (2*np.pi))
 
@@ -268,7 +268,7 @@ ax[0,0].plot(n_array, energy_array_LM, label='S0.01, {:.2f} seconds and {} execu
 #ax[0,0].plot(n_array2, energy_array_LM2, label='S0.1, Alt method')
 #ax[0,0].set_yscale('log')
 ax[0,0].legend()
-ax[0,0].set_title('Linear Method')
+ax[0,0].set_title(f'Linear Method w/ final value: {eee}')
 ax[0,1].plot(n_array_adam, energy_array_adam, label='{:.2f} seconds and {} executions'.format(t_1_adam-t_0_adam, dev_adam.num_executions))
 ax[0,1].set_title('Adam')
 ax[0,1].legend()
