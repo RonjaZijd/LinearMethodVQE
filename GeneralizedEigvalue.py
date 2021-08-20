@@ -4,9 +4,29 @@ import scipy as sp
 
 np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
-matrixA = np.array([[4,2,1,6], [0,0,3,1], [6,7,1,8], [2,1,5,0]])
-matrixB = np.array([[0,4,1,3], [1,3,4,5], [2,3,9,4], [1,2,0,1]])
+#matrixA = np.array([[4,2,1,6], [0,0,3,1], [6,7,1,8], [2,1,5,0]])  ###symmetric
+#matrixB = np.array([[0,4,1,3], [1,3,4,5], [2,3,9,4], [1,2,0,1]])
+
 size = 4
+
+A = np.random.normal(0, 1000, (size,size))
+B = np.random.normal(0, 1000, (size,size))
+matrixA = (A + A.T)/2 ##this makes the matrices symmetric
+matrixB = (B + B.T)/2
+print(matrixA)
+
+#now making B positive definite:
+eigvaly_B, eigvecy_B = np.linalg.eigh(matrixB)
+additi = np.abs(np.min(np.array(eigvaly_B)))
+for i in range(len(matrixB)):
+    for j in range(len(matrixB[i])):
+        if i==j: #aka the diagonal
+            matrixB[i][j] = matrixB[i][j]+additi
+
+eigvaly_B_after_pos_def = np.linalg.eigh(matrixB)
+print(eigvaly_B_after_pos_def)
+#apparently I now have infs or nan's somewhere
+
 eigvalsB_mat = np.zeros((size, size), dtype=np.complex128)
 eigvalsB_mat_special = np.zeros((size, size), dtype = np.complex128)
 
