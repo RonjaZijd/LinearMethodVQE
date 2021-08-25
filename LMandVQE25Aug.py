@@ -1,9 +1,7 @@
 """
 name: Most recent version LM and VQE algorithm, plus Adam, Scipy and Grad
-last edited: 20/07
+last edited: 25/08
 
-To do programming wise: 
-    -make a function to strip the actual hamiltonian into the needed arrays
 """
 import pennylane as qml
 from pennylane import numpy as np
