@@ -393,8 +393,8 @@ def H_tilde_matrix(H_matrix, E_0, E_grad, k):  ##E_0 can be calculated using E_c
     H_tilde_matrix[0][0] = E_0
     #print("This is E0: ", E_0)
     for j in range(E_grad.size):
-        H_tilde_matrix[0][j+1] = E_grad[0][j]
-        H_tilde_matrix[j+1][0] = E_grad[0][j]
+        H_tilde_matrix[0][j+1] = (1/2)*E_grad[0][j]
+        H_tilde_matrix[j+1][0] = (1/2)*E_grad[0][j]
     for i in range(len(H_matrix)):
         for j in range(len(H_matrix[i])):
             if i==j: ##so only diagonal elements 
@@ -447,9 +447,11 @@ def my_gen_solve(matrixA, matrixB, size):
 
     return eigvalsA, final_eigvec
 
-
-
-
+def smallest_real_w_norm_optimiz_eig(H_til, S_til):
+    eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
+    eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
+    eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
+    return eigvec_wanted_normed
 
 def smallest_real_w_norm_optimiz(H_til, S_til):
     eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
