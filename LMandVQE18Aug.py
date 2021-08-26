@@ -18,16 +18,17 @@ from scipy.interpolate import interp1d
 #np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
 #######################    input information        ##############################################################
-
+#np.random.seed(333)
 #The variational circuit
 U_gates = np.array([['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ']]) ##the U gates in order
 entangle_gates = np.array([[2,3], [2,0], [3,1]]) ###the entangled gates at the end
 Thets = np.random.normal(0, np.pi, (4,3))
+print(Thets)
 Thets_start = cp.copy(Thets)
 
 #Hamiltonian
-H_VQE_coeffs = [-0.24274280513140462,-0.24274280513140462,-0.04207897647782276,0.1777128746513994,0.17771287465139946,0.12293305056183798,0.12293305056183798,0.1676831945771896,0.1676831945771896,0.17059738328801052,0.17627640804319591,-0.04475014401535161,-0.04475014401535161,0.04475014401535161,0.04475014401535161]
-H_VQE_gates = [['Z3'],['Z4'],['I1'],['Z2'],['Z1'],['Z1', 'Z3'],['Z2','Z4'],['Z1','Z4'],['Z2','Z3'],['Z1','Z2'],['Z3', 'Z4'], ['Y1', 'Y2', 'X3', 'X4'],['X1', 'X2', 'Y3', 'Y4'], ['Y1', 'X2', 'X3', 'Y4'] ]
+H_VQE_coeffs = [-0.24274280513140462,-0.24274280513140462,0.1777128746513994,0.17771287465139946,0.12293305056183798,0.12293305056183798,0.1676831945771896,0.1676831945771896,0.17059738328801052,0.17627640804319591,-0.04475014401535161,-0.04475014401535161,0.04475014401535161,0.04475014401535161]
+H_VQE_gates = [['Z3'],['Z4'],['Z2'],['Z1'],['Z1', 'Z3'],['Z2','Z4'],['Z1','Z4'],['Z2','Z3'],['Z1','Z2'],['Z3', 'Z4'], ['Y1', 'Y2', 'X3', 'X4'],['X1', 'X2', 'Y3', 'Y4'], ['Y1', 'X2', 'X3', 'Y4'] ]
 Hamilt_written_outt = -0.24274280513140462*qml.PauliZ(wires=2) + -0.24274280513140462*qml.PauliZ(wires=3) +  0.1777128746513994*qml.PauliZ(wires=1)+0.17771287465139946*qml.PauliZ(wires=0)+0.12293305056183798*(qml.PauliZ(wires=0) @ qml.PauliZ(wires=2))+0.12293305056183798*(qml.PauliZ(wires=1)@qml.PauliZ(wires=3))+0.1676831945771896*(qml.PauliZ(wires=0)@qml.PauliZ(wires=3))+0.1676831945771896*(qml.PauliZ(wires=1)@qml.PauliZ(wires=2)) +0.17059738328801052*(qml.PauliZ(wires=0)@qml.PauliZ(wires=1))+0.17627640804319591*(qml.PauliZ(wires=2)@qml.PauliZ(wires=3))+-0.04475014401535161*(qml.PauliY(wires=0)@qml.PauliY(wires=1)@qml.PauliX(wires=2)@qml.PauliX(wires=3))+-0.04475014401535161*(qml.PauliX(wires=0)@qml.PauliX(wires=1)@qml.PauliY(wires=2)@qml.PauliY(wires=3))+0.04475014401535161*(qml.PauliY(wires=0)@qml.PauliX(wires=1)@qml.PauliX(wires=2)@qml.PauliY(wires=3))+0.04475014401535161*(qml.PauliX(wires=0)@qml.PauliY(wires=1)@qml.PauliY(wires=2)@qml.PauliX(wires=3))
 Hamilt_written_out = -0.2*qml.PauliZ(wires=2) + -0.56*qml.PauliZ(wires=3) + 0.122*(qml.PauliZ(wires=0) @ qml.PauliZ(wires=2))
 
@@ -148,9 +149,12 @@ t_0_lm = time.process_time()
 #Initializing
 n_array = []
 energy_array_LM = []
-#Thets_start = np.array([[3.69, 1.80, 5.10], [0.07, 4.12, 0.79], [3.45, 6.18, 2.93], [6.24, 2.62, 2.85]])
+#Thets_start = np.array([[2.69, 1.39, 2.10], [3.07, 1.12, 4.79], [0.45, 2.18, 3.93], [1.24, 0.62, 6.85]])
+#Thets_start = np.array([[ 6.32638897, -6.12331649, -4.49510873], [ 0.99456863,  0.12559029,  0.26026123], [-3.55112765, -6.02068374 , 0.24326378],[-7.56792862 , 6.3901332 ,  0.36616908]])
 Thets=Thets_start
-eee=0
+eee= LM.energy_calc(circuit, Hamilt_written_outt, dev_lm, Thets)
+n_array = np.append(n_array, 0)
+energy_array_LM = np.append(energy_array_LM, eee)
 energy_old =0
 times_shaken = 0
 n_of_S_sparse = 0
@@ -158,35 +162,37 @@ n_of_H_sparse = 0
 condition_array_H = []
 ###For the naming: 
 Regularization = 0.01
-K_max = 109
-name_run = "R01K100"
-
-max_k =1
 
 print("I've started running!")
+print("Very initial parameters: ")
+print(Thets)
+print("Starting energy associated with these parameters: ")
+print(eee)
+prev_parameters = Thets
 
-for n in range(20) :
+
+for n in range(10) :
     H = LM.H_Matrix_final_calc(U_gates, Thets, H_VQE_gates, H_VQE_coeffs, entangle_gates)
     S = LM.S_Matrix_final_calc_newy(U_gates, Thets)
-    print("Is S invertible? Its determinant is: ")
-    print(np.linalg.det(S))
+    # print("Is S invertible? Its determinant is: ")
+    # print(np.linalg.det(S))
     S_tilde = LM.S_tilde_matrix(S, Regularization)
-    print("Is S-tilde invertible? Its determinant is: ")
-    print(np.linalg.det(S_tilde))
-    print("What is the condition number of S?: ")
-    print(np.linalg.cond(S_tilde))
-    print()
+    # print("Is S-tilde invertible? Its determinant is: ")
+    # print(np.linalg.det(S_tilde))
+    # print("What is the condition number of S?: ")
+    # print(np.linalg.cond(S_tilde))
+    # print()
     temp_thets_ar = []
     temp_energ_ar = []
     condition_array_H = []
     n_of_times_not_converged = 0
     #non_temp_k_ar = [1, 0.2, 0.4, 0.6, 0.8, 0]
-    non_temp_k_ar = np.linspace(0.01, max_k, 100, endpoint=True)
+    non_temp_k_ar = np.linspace(0.01,  1, 100, endpoint=True) ##disabling the tail
     
     for k in non_temp_k_ar: 
         H_tilde = LM.H_tilde_matrix(H, eee, LM.E_grad(Thets, Hamilt_written_outt, circuit, dev_lm), k)
-        print("What is the condition number of H_Tilde?")
-        print(np.linalg.cond(H_tilde))
+        #print("What is the condition number of H_Tilde?")
+        #print(np.linalg.cond(H_tilde))
         condition_array_H = np.append(condition_array_H, np.linalg.cond(H_tilde))
         try:
             update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
@@ -206,41 +212,44 @@ for n in range(20) :
     eee = temp_energ_ar[arg_chosen] ###pick the lowest energy. 
     max_k = LM.finding_start_of_tail(temp_energ_ar, non_temp_k_ar, 0.001)
     energy_array_LM = np.append(energy_array_LM, eee)
-    n_array = np.append(n_array, n)
+    n_array = np.append(n_array, n+1)
     
     print("---------------------------------------------------------------------------------------------------") #printing things to see what the program is doing
     print("Iteration: ", n)
     print("Number of times not converged: ", n_of_times_not_converged)
     print()
-    print("This is temp_energ_ar: ")
-    print(temp_energ_ar)
-    print(np.argmin(temp_energ_ar))
+    # print("This is temp_energ_ar: ")
+    # print(temp_energ_ar)
+    # print(np.argmin(temp_energ_ar))
     #print("K chosen using interpolation", k_chosen)
-    print("Actual k chosen", non_temp_k_ar[arg_chosen])
-    print("Energy chosen: ", eee)
+    #print("Actual k chosen", non_temp_k_ar[arg_chosen])
+    print("Energy chosen after update step: ", eee)
 
 
     ############plottingg########################################
-    # fig, (ax1, ax2) = plt.subplots(2,1)
-    # #plt.legend(['data', 'linear', 'cubic', 'quadratic'], loc='best')
-    # ax1.scatter(non_temp_k_ar, temp_energ_ar)
-    # #plt.xlabel('k-value')
-    # #plt.ylabel('Energy')
-    # #plt.title('K-cutoff point:', max_k)
-    # ax1.plot(non_temp_k_ar, temp_energ_ar, label = f'Condition number S: {np.linalg.cond(S_tilde)}, not converged: {n_of_times_not_converged}')
-    # ax1.legend()
-    # ax2.set(xlabel='K-value', ylabel = 'Condition number H')
-    # ax1.set(ylabel='Energy')
-    # ax2.scatter(non_temp_k_ar, condition_array_H, label=f'Condition number S: {np.linalg.cond(S_tilde)}')
-    # ax2.legend()
-    # plt.show()
-    print("These are the paramters: ")  #don't want to print the theta's for now
-    print(Thets % (2*np.pi))
+    fig, (ax1, ax2) = plt.subplots(2,1)
+    ax1.scatter(non_temp_k_ar, temp_energ_ar)
+    #plt.xlabel('k-value')
+    #plt.ylabel('Energy')
+    #plt.title('K-cutoff point:', max_k)
+    ax1.plot(non_temp_k_ar, temp_energ_ar, label = f'Condition number S: {np.linalg.cond(S_tilde)}, not converged: {n_of_times_not_converged}')
+    ax1.legend()
+    ax2.set(xlabel='K-value', ylabel = 'Condition number H')
+    ax1.set(ylabel='Energy')
+    ax2.scatter(non_temp_k_ar, condition_array_H, label=f'Condition number S: {np.linalg.cond(S_tilde)}')
+    ax2.legend()
+    plt.show()
 
-    if LM.is_sparse(H_tilde): 
-        n_of_H_sparse +=1
-    if LM.is_sparse(S_tilde):
-        n_of_S_sparse +=1
+    print("These are the paramters: ")  #don't want to print the theta's for now
+    print(Thets)
+    print("This is the difference in parameters: ")
+    print(Thets-prev_parameters)
+    prev_parameters = Thets
+
+    # if LM.is_sparse(H_tilde): 
+    #     n_of_H_sparse +=1
+    # if LM.is_sparse(S_tilde):
+    #     n_of_S_sparse +=1
     if energy_array_LM[n]<(-1.095): ###########################stop condition
             print("Terminating early wrt absolute value")
             break
@@ -264,7 +273,7 @@ global_minimum = 1.094
 
 ######Plotting
 fig, ax = plt.subplots(2,2)
-ax[0,0].plot(n_array, energy_array_LM, label='S0.01, {:.2f} seconds and {} executions + hs'.format(t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
+ax[0,0].plot(n_array, energy_array_LM, label='S{}, {:.2f} seconds and {} executions + hs'.format(Regularization, t_1_lm-t_0_lm, dev_lm.num_executions+lm_scaling(Thets.size, len(non_temp_k_ar), len(H_VQE_coeffs))))
 #ax[0,0].plot(n_array2, energy_array_LM2, label='S0.1, Alt method')
 #ax[0,0].set_yscale('log')
 ax[0,0].legend()
