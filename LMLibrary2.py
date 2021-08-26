@@ -3,7 +3,7 @@ from pennylane import numpy as np
 import scipy as sp
 
 I_mat = [[1,0], [0,1]]
-shapy = (4,3)
+shapy = (8,2)
 
 
 ######################      gates                    #############################################################
@@ -188,19 +188,33 @@ def c_notting_hamil(input_array): ##doesn't change when extending it to multiple
         
 
 
+#def circuit(params, wires):
+##    qml.BasisState(np.array([1, 1, 0, 0], requires_grad=False), wires=wires)   ##let's try taking this one away and see what it does
+ #   for i in wires:
+  #      qml.Rot(params[i][2], params[i][1], params[i][0], wires=i)
+  #  qml.CNOT(wires=[2, 3])
+  #  qml.CNOT(wires=[2, 0])
+  #  qml.CNOT(wires=[3, 1])
+    
 def circuit(params, wires):
-    qml.BasisState(np.array([1, 1, 0, 0], requires_grad=False), wires=wires)   ##let's try taking this one away and see what it does
+    print("Going into this circuit")
+    qml.BasisState(np.array([0,0,0,0,0,0,0,0,0], requires_grad=False), wires=wires)
     for i in wires:
-        qml.Rot(params[i][2], params[i][1], params[i][0], wires=i)
-    qml.CNOT(wires=[2, 3])
-    qml.CNOT(wires=[2, 0])
-    qml.CNOT(wires=[3, 1])
+        qml.RY(params[i][0], wires=i)
+        qml.RZ(params[i][1], wires=i)
+    qml.CNOT(wires=[0,1])
+    qml.CNOT(wires=[1,2])
+    qml.CNOT(wires=[2,3])
+    qml.CNOT(wires=[3,4])
+    qml.CNOT(wires=[4,5])
+    qml.CNOT(wires=[5,6])
+    qml.CNOT(wires=[6,7])
 
 ###########################################      Devices      ###########################################################
 
-dev = qml.device('default.qubit', wires=13)
-dev2 = qml.device('default.qubit', wires=12)
-dev3 = qml.device('default.qubit', wires=11)
+dev = qml.device('default.qubit', wires=11)
+dev2 = qml.device('default.qubit', wires=9)
+dev3 = qml.device('default.qubit', wires=9)
 
 @qml.qnode(dev3)
 def real_circ_S_newy(int1, int2, U_gates, Thets):
@@ -230,16 +244,21 @@ def imagin_circ_S(int1, int2, U_gates, Thets): ##to get imaginary part: same cir
 def real_circ_h(int1, int2, U_gates, Thets, inp_array, entangle_gates):
     mat_len = Thets.size
     i, j = circ_creator(int1, int2, U_gates, Thets)
+    
     up_to_un_circ(int2, i, j, mat_len, U_gates, Thets) 
     final_entangled_gates_circ(entangle_gates)
+    
     c_notting_hamil(inp_array.numpy())
+    
     qml.Hadamard(wires=0)
+    #print("Gooott here")
     return qml.expval(qml.PauliZ(wires=0))
 
 @qml.qnode(dev)
 def imagin_circ_h(int1, int2, U_gates, Thets, inp_array, entangle_gates):
     mat_len = Thets.size
     i, j = circ_creator(int1, int2, U_gates, Thets)
+
     up_to_un_circ(int2, i, j, mat_len, U_gates, Thets) 
     final_entangled_gates_circ(entangle_gates)
     c_notting_hamil(inp_array.numpy())
@@ -254,6 +273,7 @@ def total_ham_element(int1, int2, U_gates, Thets, hamiltonian_array, Hamil_coefs
     i=0
     while i<len(hamiltonian_array):
         small_h_real = real_circ_h(int1, int2, U_gates, Thets, hamiltonian_array[i], entangle_gates)
+        #print("managed it here")
         small_h_imag = imagin_circ_h(int1, int2, U_gates, Thets, hamiltonian_array[i], entangle_gates)
         small_h = small_h_real + small_h_imag*1j
         #small_h = small_h_real ##keeping it all real for the moment
@@ -280,18 +300,21 @@ def energy_calc(circuit, Hamilt_written_out, device, Thets):
 
 
 def H_Matrix_final_calc(U_gates, Thets, Hamil_array, Hamil_coeffs, entangle_gates):
+    #print("Hellooo")
     matrix_length = Thets.size
     H_matrix = np.zeros(shape=(matrix_length, matrix_length), dtype=np.complex128)
-   #print(np.shape(H_matrix))
+    print(np.shape(H_matrix))
     i=0
     while i<matrix_length:
         j=0
         while j<matrix_length:
             if j>i or j==i:
+                #print("Didnot get pashere")
                 H, Hc = total_ham_element(i, j, U_gates, Thets, Hamil_array, Hamil_coeffs, entangle_gates)
+                #print("Got past here")
                 H_matrix[i][j] = (1/4)*H
                 H_matrix[j][i] = (1/4)*Hc  ##and the complex conjugate
-                #print("added another element to h matrix")
+                print("added another element to h matrix")
             j=j+1
         i=i+1
     
