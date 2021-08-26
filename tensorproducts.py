@@ -11,7 +11,11 @@ np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}
 
 H_coeffs = [-0.24274280513140462,-0.24274280513140462,-0.04207897647782276,0.1777128746513994,0.17771287465139946,0.12293305056183798,0.12293305056183798,0.1676831945771896,0.1676831945771896,0.17059738328801052,0.17627640804319591,-0.04475014401535161,-0.04475014401535161,0.04475014401535161,0.04475014401535161]
 H_gates = [['Z3'],['Z4'],['I1'],['Z2'],['Z1'],['Z1', 'Z3'],['Z2','Z4'],['Z1','Z4'],['Z2','Z3'],['Z1','Z2'],['Z3', 'Z4'], ['Y1', 'Y2', 'X3', 'X4'],['X1', 'X2', 'Y3', 'Y4'], ['Y1', 'X2', 'X3', 'Y4'] ]
-tot_wires = 4
+
+H_coeffs = [(1-1j)/4, (1-1j)/4, (1-1j)/4, (3+1j)/2]
+H_gates = [['X1', 'X2'], ['Y1', 'Y2'], ['Z1', 'Z2'], ['I1', 'I2']]
+
+tot_wires = 2
 Hamil_matrix = np.zeros(shape=(tot_wires*tot_wires, tot_wires*tot_wires), dtype = np.complex128)
 
 X = [[0, 1], [1,0]]
@@ -47,6 +51,7 @@ for i in range(len(H_gates)):
 eigvals, eigvecs = sp.linalg.eig(Hamil_matrix)
 print(eigvals[np.argmin(eigvals)])
 
+print("Final matrix")
 print(Hamil_matrix)
 
 #to do here: 

@@ -157,7 +157,7 @@ n_of_S_sparse = 0
 n_of_H_sparse = 0
 condition_array_H = []
 ###For the naming: 
-Regularization = 0.01
+Regularization = 0.1
 K_max = 109
 name_run = "R01K100"
 
