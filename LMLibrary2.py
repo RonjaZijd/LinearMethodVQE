@@ -3,7 +3,7 @@ from pennylane import numpy as np
 import scipy as sp
 
 I_mat = [[1,0], [0,1]]
-shapy = (8,2)
+shapy = (4,3)
 
 
 ######################      gates                    #############################################################
