@@ -21,7 +21,7 @@ np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}
 
 # Configuration
 plot_lm = False
-num_steps_lm = 10
+num_steps_lm = 100
 num_steps_adam = 300
 num_steps_grad = 700
 
@@ -166,7 +166,7 @@ for n in range(num_steps_lm):
     arg_chosen = np.argmin(_energies)
     Thets = np.reshape(_thetas[arg_chosen], Thets.shape) ##choose the new theta's of the lowest energy
     energies_lm.append(_energies[arg_chosen])###pick the lowest energy. 
-    max_k = LM.finding_start_of_tail(_energies, regularizations, 0.001)
+    #max_k = LM.finding_start_of_tail(_energies, regularizations, 0.001)
     iterations_lm.append(n+1)
     
     print("-"*100) #printing things to see what the program is doing
@@ -200,12 +200,12 @@ for n in range(num_steps_lm):
         print(Thets-prev_parameters)
         prev_parameters = Thets
 
-        if energies_lm[n]<(-1.095): ###########################stop condition
-            print("Terminating early wrt absolute value")
-            break
+    if energies_lm[n]<(-1.095): ###########################stop condition
+        print("Terminating early wrt absolute value")
+        break
 
 t_1_lm = time.process_time()
-lm_scaling = lambda n, k, H_len : ((n*n+n)*H_len + (n*n-n)) #lambda function to calculate how many times circ is done to get H and S
+lm_scaling = lambda n, H_len : ((n*n+n)*H_len + (n*n-n)) #lambda function to calculate how many times circ is done to get H and S
 
 ##################################           Scipy BFGS Method        #######################################################
 t_0_scipy = time.process_time()
@@ -278,7 +278,7 @@ fig, ax = plt.subplots(1,1,figsize=(9,6))
 all_energies = [energies_lm, energies_scipy, energies_grad, energies_adam]
 all_iterations = [iterations_lm, iterations_scipy, iterations_grad, iterations_adam]
 all_execution_counts = [
-    dev_lm.num_executions + lm_scaling(Thets.size, len(regularizations), len(H_VQE_coeffs)),
+    dev_lm.num_executions + lm_scaling(Thets.size, len(H_VQE_coeffs)),
     dev_scipy.num_executions,
     dev_grad.num_executions,
     dev_adam.num_executions,

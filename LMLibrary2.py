@@ -398,9 +398,9 @@ def H_tilde_matrix(H_matrix, E_0, E_grad, k):  ##E_0 can be calculated using E_c
     for i in range(len(H_matrix)):
         for j in range(len(H_matrix[i])):
             if i==j: ##so only diagonal elements 
-                H_tilde_matrix[i+1][j+1] = H_matrix[i][j] + k       ##only to the diagonal elements
+                H_tilde_matrix[i+1][j+1] = (1/2)*H_matrix[i][j] + k       ##only to the diagonal elements
             else:
-                H_tilde_matrix[i+1][j+1] = H_matrix[i][j]             ###now actually with the regularization
+                H_tilde_matrix[i+1][j+1] = (1/2)*H_matrix[i][j]             ###now actually with the regularization
     
     return H_tilde_matrix
 
