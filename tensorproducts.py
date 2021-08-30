@@ -2,6 +2,7 @@ import pennylane as qml
 from pennylane import numpy as np
 import scipy as sp
 import LMLibrary2 as LM
+import HamiltoniansLibrary as HML
 
 np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
@@ -19,14 +20,17 @@ np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}
 #symbols = ["H", "H", "H", "H"]
 #coordinates = np.array([0.0, 0.0, 0.371322, 0.0, 0.0, -0.371322, 0.0, 0.0, 0.7426644, 0.0, 0.0, -0.7426644])
 
-symbols = ['Li', 'H']
-coordinates = np.array([0.0, 0.0, 0.403635, 0.0, 0.0, -1.210905])
-H, qubits = qml.qchem.molecular_hamiltonian(symbols, coordinates)
-print(qubits)
-H_VQE_coeffs = H.coeffs
-H_VQE_gates = LM.hamiltonian_into_gates(H)
+#symbols = ['Li', 'H']
+#coordinates = np.array([0.0, 0.0, 0.403635, 0.0, 0.0, -1.210905])
+#H, qubits = qml.qchem.molecular_hamiltonian(symbols, coordinates)
+#print(qubits)
+#H_VQE_coeffs = H.coeffs
+#H_VQE_gates = LM.hamiltonian_into_gates(H)
 
-print(H_VQE_gates)
+
+H_VQE_gates = HML.H_LiH_gates
+H_VQE_coeffs = HML.H_LiH_coeffs
+#print(H_VQE_gates)
 
 X = [[0, 1], [1,0]]
 I = [[1, 0], [0, 1]]
@@ -60,4 +64,4 @@ def exact_energ(H_gates, H_coeffs, tot_wires):
     print(Hamil_matrix)
     return(lowest_energ)
 
-print(exact_energ(H_VQE_gates, H_VQE_coeffs, 12))
+print(exact_energ(H_VQE_gates, H_VQE_coeffs, 4))

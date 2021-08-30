@@ -36,8 +36,8 @@ print(Thets)
 Thets_start = cp.copy(Thets)
 
 #Hamiltonian
-H_VQE_coeffs = HML.H_HH_coeffs
-H_VQE_gates = HML.H_HH_gates
+H_VQE_coeffs = HML.H_LiH_coeffs
+H_VQE_gates = HML.H_LiH_gates
 Hamilt_written_out = HML.creating_written_out_ham(H_VQE_coeffs, H_VQE_gates)
 
 # # Convert the above lists into a list of pennylane observables
