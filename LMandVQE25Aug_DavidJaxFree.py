@@ -9,6 +9,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import LMLibrary2_david as LM  ##contains all self-made functions needed for Linear method optimization
 import LMLibrary2 as LM_R  
+import HamiltoniansLibrary as HML
 import copy as cp
 import time
 import pandas as pd
@@ -35,46 +36,17 @@ print(Thets)
 Thets_start = cp.copy(Thets)
 
 #Hamiltonian
-H_VQE_coeffs = [
-    -0.24274280513140462,
-    -0.24274280513140462,
-    0.1777128746513994,
-    0.17771287465139946,
-    0.12293305056183798,
-    0.12293305056183798,
-    0.1676831945771896,
-    0.1676831945771896,
-    0.17059738328801052,
-    0.17627640804319591,
-    -0.04475014401535161,
-    -0.04475014401535161,
-    0.04475014401535161,
-    0.04475014401535161,
-]
-H_VQE_gates = [
-    ['Z3'],
-    ['Z4'],
-    ['Z2'],
-    ['Z1'],
-    ['Z1', 'Z3'],
-    ['Z2','Z4'],
-    ['Z1','Z4'],
-    ['Z2','Z3'],
-    ['Z1','Z2'],
-    ['Z3', 'Z4'], 
-    ['Y1', 'Y2', 'X3', 'X4'],
-    ['X1', 'X2', 'Y3', 'Y4'], 
-    ['Y1', 'X2', 'X3', 'Y4'], 
-    ['X1', 'Y2', 'Y3', 'X4'],
-]
+H_VQE_coeffs = HML.H_HH_coeffs
+H_VQE_gates = HML.H_HH_gates
+Hamilt_written_out = HML.creating_written_out_ham(H_VQE_coeffs, H_VQE_gates)
 
-# Convert the above lists into a list of pennylane observables
-Hamilt_written_out = [
-    coeff * eval("@".join([f"qml.Pauli{pauli[0]}({int(pauli[1])-1})" for pauli in term])) 
-    for coeff, term in zip(H_VQE_coeffs, H_VQE_gates)
-]
-# Sum the observables into the Hamiltonian
-Hamilt_written_out = sum(Hamilt_written_out[1:], Hamilt_written_out[0])
+# # Convert the above lists into a list of pennylane observables
+# Hamilt_written_out = [
+#     coeff * eval("@".join([f"qml.Pauli{pauli[0]}({int(pauli[1])-1})" for pauli in term])) 
+#     for coeff, term in zip(H_VQE_coeffs, H_VQE_gates)
+# ]
+# # Sum the observables into the Hamiltonian
+# Hamilt_written_out = sum(Hamilt_written_out[1:], Hamilt_written_out[0])
 
 #Other information
 no_of_gates = len(U_gates)
