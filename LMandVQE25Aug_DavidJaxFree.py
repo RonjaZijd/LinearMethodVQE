@@ -22,7 +22,7 @@ np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}
 
 # Configuration
 plot_lm = False
-num_steps_lm = 10
+num_steps_lm = 5
 num_steps_adam = 300
 num_steps_grad = 700
 
@@ -33,6 +33,7 @@ U_gates = np.array([['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], 
 entangle_gates = np.array([[2,3], [2,0], [3,1]]) ###the entangled gates at the end
 Thets = np.random.normal(0, np.pi, (4,3))
 print(Thets)
+Thets = np.array([[44.87, -3.15, -8.20], [-1.08, 0.11, -3.91], [12.57, -3.10, 5.91], [-11.35, 3.14, 3.37]])
 Thets_start = cp.copy(Thets)
 
 #Hamiltonian
@@ -132,21 +133,18 @@ for n in range(num_steps_lm):
             condition_numbers_H.append(np.linalg.cond(H_tilde))
         except:
             print("Could not converge")
+            regularizations = np.delete(regularizations, np.where(regularizations==k))
             n_not_converged += 1
 
     _thetas = np.array(_thetas).reshape((len(_thetas), Thets.size))
     arg_chosen = np.argmin(_energies)
     Thets = np.reshape(_thetas[arg_chosen], Thets.shape) ##choose the new theta's of the lowest energy
     energies_lm.append(_energies[arg_chosen])###pick the lowest energy. 
-    max_k = LM.finding_start_of_tail(_energies, regularizations, 0.001)
     iterations_lm.append(n+1)
     
     print("-"*100) #printing things to see what the program is doing
     print("Iteration: ", n)
     print("Number of times not converged: ", n_not_converged)
-    print()
-    print("This is temp_energ_ar: ")
-    print(_energies)
     print("Chosen minimal index: ", arg_chosen)
     print("Actual k chosen", regularizations[arg_chosen])
     print("Energy chosen after update step: ", energies_lm[-1])
@@ -172,9 +170,9 @@ for n in range(num_steps_lm):
         print(Thets-prev_parameters)
         prev_parameters = Thets
 
-        if energies_lm[n]<(-1.095): ###########################stop condition
-            print("Terminating early wrt absolute value")
-            break
+    if energies_lm[n]<(-1.095): ###########################stop condition
+        print("Terminating early wrt absolute value")
+        break
 
 t_1_lm = time.process_time()
 lm_scaling = lambda n, k, H_len : ((n*n+n)*H_len + (n*n-n)) #lambda function to calculate how many times circ is done to get H and S
