@@ -29,12 +29,12 @@ num_steps_grad = 700
 #######################    input information        ##############################################################
 #np.random.seed(333)
 #The variational circuit
-#U_gates = np.array([['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ']]) ##the U gates in order
-#entangle_gates = np.array([[2,3], [2,0], [3,1]]) ###the entangled gates at the end
+U_gates = np.array([['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ']]) ##the U gates in order
+entangle_gates = np.array([[2,3], [2,0], [3,1]]) ###the entangled gates at the end
 
-U_gates = np.array([['RY', 'RZ'], ['RY', 'RZ'], ['RY', 'RZ'],['RY', 'RZ'],['RY', 'RZ'],['RY', 'RZ'],['RY', 'RZ'],['RY', 'RZ']]) ##the U gates in order
-entangle_gates = np.array([[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7]]) ###the entangled gates at the end
-Thets = np.random.normal(0, np.pi, (8,2))
+#U_gates = np.array([['RY', 'RZ'], ['RY', 'RZ'], ['RY', 'RZ'],['RY', 'RZ'],['RY', 'RZ'],['RY', 'RZ'],['RY', 'RZ'],['RY', 'RZ']]) ##the U gates in order
+#entangle_gates = np.array([[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7]]) ###the entangled gates at the end
+Thets = np.random.normal(0, np.pi, (4,3))
 print(Thets)
 Thets_start = cp.copy(Thets)
 
@@ -47,7 +47,7 @@ Hamilt_written_out = HML.creating_written_out_ham(H_VQE_coeffs, H_VQE_gates)
 
 #Other information
 no_of_gates = len(U_gates)
-no_of_wires =9
+no_of_wires =5
 matrix_length = Thets.size
 
 name_csv_file = "LiHSystem70ItsReg0.01.csv"
@@ -61,27 +61,27 @@ dev_lm = qml.device('default.qubit', wires=no_of_wires-1, shots=None)
 
 #########################   MAIN           ############################
 
-#def circuit(params, wires):
-#    qml.BasisState(np.array([1, 1, 0, 0], requires_grad=False), wires=wires)
-#    for i in wires:
-#        qml.Rot(*params[i], wires=i)
-#    qml.CNOT(wires=[2, 3])
-#    qml.CNOT(wires=[2, 0])
-#    qml.CNOT(wires=[3, 1])
-    
 def circuit(params, wires):
-    print("Going into this circuit")
-    qml.BasisState(np.array([0,0,0,0,0,0,0,0,0], requires_grad=False), wires=wires)
+    qml.BasisState(np.array([1, 1, 0, 0], requires_grad=False), wires=wires)
     for i in wires:
-        qml.RY(params[i][0], wires=i)
-        qml.RZ(params[i][1], wires=i)
-    qml.CNOT(wires=[0,1])
-    qml.CNOT(wires=[1,2])
-    qml.CNOT(wires=[2,3])
-    qml.CNOT(wires=[3,4])
-    qml.CNOT(wires=[4,5])
-    qml.CNOT(wires=[5,6])
-    qml.CNOT(wires=[6,7])
+        qml.Rot(*params[i], wires=i)
+    qml.CNOT(wires=[2, 3])
+    qml.CNOT(wires=[2, 0])
+    qml.CNOT(wires=[3, 1])
+    
+#def circuit(params, wires):
+#    print("Going into this circuit")
+#    qml.BasisState(np.array([0,0,0,0,0,0,0,0,0], requires_grad=False), wires=wires)
+#    for i in wires:
+#        qml.RY(params[i][0], wires=i)
+#        qml.RZ(params[i][1], wires=i)
+#    qml.CNOT(wires=[0,1])
+#    qml.CNOT(wires=[1,2])
+#    qml.CNOT(wires=[2,3])
+#    qml.CNOT(wires=[3,4])
+#    qml.CNOT(wires=[4,5])
+#    qml.CNOT(wires=[5,6])
+#    qml.CNOT(wires=[6,7])
 
 
 max_iterations = 200
@@ -144,6 +144,12 @@ for n in range(num_steps_lm):
             condition_numbers_H.append(np.linalg.cond(H_tilde))
         except:
             print("Could not converge")
+            print(f"Condition number H: {np.linalg.cond(H_tilde)}")
+            print(f"Condition number S: {np.linalg.cond(S_tilde)}\n")
+            print(S_tilde)
+            update = LM.smallest_real_w_norm_optimiz_eig(H_tilde, S_tilde)
+            print("My own algorithm worked!")
+            update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
             n_not_converged += 1
 
     _thetas = np.array(_thetas).reshape((len(_thetas), Thets.size))
@@ -281,11 +287,11 @@ energies_and_name = dict(zipsies)
 print(energies_and_name)
 
 #df = pd.DataFrame(energies_and_name, index = [0])
-df = pd.read_csv(name_csv_file)
-df = df.append(energies_and_name, ignore_index = True)
-df.drop(columns = df.columns[0], axis=1, inplace=True)
-print(df)
-df.to_csv(name_csv_file)
+#df = pd.read_csv(name_csv_file)
+#df = df.append(energies_and_name, ignore_index = True)
+#df.drop(columns = df.columns[0], axis=1, inplace=True)
+#print(df)
+#df.to_csv(name_csv_file)
 
 
 
