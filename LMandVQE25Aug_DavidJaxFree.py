@@ -33,13 +33,14 @@ U_gates = np.array([['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], 
 entangle_gates = np.array([[2,3], [2,0], [3,1]]) ###the entangled gates at the end
 Thets = np.random.normal(0, np.pi, (4,3))
 print(Thets)
-Thets = np.array([[44.87, -3.15, -8.20], [-1.08, 0.11, -3.91], [12.57, -3.10, 5.91], [-11.35, 3.14, 3.37]])
+#Thets = np.array([[44.87, -3.15, -8.20], [-1.08, 0.11, -3.91], [12.57, -3.10, 5.91], [-11.35, 3.14, 3.37]])
 Thets_start = cp.copy(Thets)
 
 #Hamiltonian
 H_VQE_coeffs = HML.H_LiH_coeffs
 H_VQE_gates = HML.H_LiH_gates
 Hamilt_written_out = HML.creating_written_out_ham(H_VQE_coeffs, H_VQE_gates)
+print(Hamilt_written_out)
 
 # # Convert the above lists into a list of pennylane observables
 # Hamilt_written_out = [
