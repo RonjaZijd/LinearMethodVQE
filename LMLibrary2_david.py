@@ -1,5 +1,6 @@
 import pennylane as qml
 from pennylane import numpy as np
+from scipy import linalg as ln
 import scipy as sp
 import itertools as it
 
@@ -261,8 +262,34 @@ def my_gen_solve(matrixA, matrixB, size):
 
     return eigvalsA, final_eigvec
 
+def gen_eigh(A, B):
+    """Solve the generalized eigenvalue problem Av = lambda Bv."""
+
+    # Some tests that there is no wrong inputs
+    #  - Test for Hermiticity of input matrices
+    assert np.allclose(B, B.T.conj()) and np.allclose(A, A.T.conj())
+    #  - Test for positivity of B
+    assert np.min(ln.eigvalsh(B))>0.0
+
+    # Solve eigenvalue problem for B
+    Lambda_B, Phi_B = ln.eig(B)
+    # Define the modified eigenvectors of B (@ is np.matmul)
+    Phi_B_tilde = Phi_B @ np.diag(Lambda_B**(-1/2))
+    # Define transformed A matrix
+    A_tilde = Phi_B_tilde.T @ A @ Phi_B_tilde
+    # Solve eigenvalue problem for transformed A
+    Lambda_A, Phi_A = ln.eig(A_tilde)
+    # The eigenvalues of transformed A are the generalized eigenvalues
+    Lambda = Lambda_A
+    # The backtransformed eigenvectors of the transformed A are the gen. eigenvectors
+    Phi = Phi_B_tilde @ Phi_A
+    # Bonus: Normalize the columns (i.e. the eigenvectors) to 1
+    Phi /= ln.norm(Phi, 2, axis=0)
+
+    return Lambda, Phi
+
 def smallest_real_w_norm_optimiz_eig(H_til, S_til):
-    eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
+    eigvals, eigvecs = gen_eigh(H_til, S_til, H_til)
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
     return eigvec_wanted_normed
