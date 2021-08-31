@@ -22,12 +22,12 @@ np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}
 
 # Configuration
 plot_lm = False
-num_steps_lm = 20
+num_steps_lm = 5
 num_steps_adam = 300
 num_steps_grad = 700
 
 #######################    input information        ##############################################################
-#np.random.seed(333)
+np.random.seed(89)
 #The variational circuit
 U_gates = np.array([['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ'], ['RZ', 'RY', 'RZ']]) ##the U gates in order
 entangle_gates = np.array([[2,3], [2,0], [3,1]]) ###the entangled gates at the end
