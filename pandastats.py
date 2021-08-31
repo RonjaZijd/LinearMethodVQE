@@ -13,7 +13,7 @@ Stats which I want to include:
 
 import pandas as pd
 
-name_file = "100ks15itsstats.csv"
+name_file = "LiHSystem70ItsReg0.01.csv"
 
 df = pd.read_csv(name_file)
 print(df.mean(axis=0))
@@ -24,20 +24,20 @@ Adam_stuck = 0
 Scipy_stuck = 0
 tots=0
 
-for x in df['LM']:
+for x in df['Linear Method']:
     if x>-1:
         LM_stuck = LM_stuck+1
     tots=tots+1
 
-for x in df['Grad']:
+for x in df['Gradient Descent']:
     if x>-1:
         Grad_stuck+=1
 
-for x in df['Adam']:
+for x in df['ADAM']:
     if x>-1:
         Adam_stuck+=1
         
-for x in df['SciPy']:
+for x in df['BFGS']:
     if x>-1:
         Scipy_stuck+=1
         

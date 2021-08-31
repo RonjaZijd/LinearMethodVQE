@@ -7,7 +7,7 @@ I_mat = [[1,0], [0,1]]
 X = np.array([[0,1],[1,0]])
 Y = np.array([[0,-1j],[1j,0]])
 Z = np.array([[1,0], [0,-1]])
-shapy = (4,3)
+shapy = (8,2)
 
 
 ######################      gates                    #############################################################
@@ -153,6 +153,7 @@ def c_notting_hamil(input_array): ##doesn't change when extending it to multiple
         
 
 def circuit(params, wires):
+    print("We are trying to enter this:")
     qml.BasisState(np.array([1, 1, 0, 0], requires_grad=False), wires=wires)   ##let's try taking this one away and see what it does
     for i in wires:
         qml.Rot(params[i][2], params[i][1], params[i][0], wires=i)
@@ -162,7 +163,7 @@ def circuit(params, wires):
 
 ###########################################      Devices      ###########################################################
 
-num_wires = 4
+num_wires = 8
 dev = qml.device('default.qubit', wires=num_wires+1)
 dev2 = qml.device('default.qubit', wires=num_wires+1)
 dev3 = qml.device('default.qubit', wires=num_wires+1)

@@ -65,4 +65,4 @@ def exact_energ(H_gates, H_coeffs, tot_wires):
     print(Hamil_matrix)
     return(lowest_energ)
 
-print(exact_energ(H_VQE_gates, H_VQE_coeffs, 4))
+print(exact_energ(H_VQE_gates, H_VQE_coeffs, 8))
