@@ -289,7 +289,7 @@ def gen_eigh(A, B):
     return Lambda, Phi
 
 def smallest_real_w_norm_optimiz_eig(H_til, S_til):
-    eigvals, eigvecs = gen_eigh(H_til, S_til, H_til)
+    eigvals, eigvecs = gen_eigh(H_til, S_til)
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
     return eigvec_wanted_normed

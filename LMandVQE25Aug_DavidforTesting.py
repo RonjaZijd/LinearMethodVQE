@@ -21,7 +21,7 @@ import jax
 np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
 # Configuration
-plot_lm = False
+plot_lm = True
 num_steps_lm = 15
 num_steps_adam = 300
 num_steps_grad = 700
@@ -136,21 +136,23 @@ for n in range(num_steps_lm):
         H_tilde = LM.H_tilde_matrix(H, energies_lm[-1], gradient, k)
         try:
             update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
-            _Thets = LM.new_thetsy(update, Thets)
-            #Energ_temp = LM.energy_calc(circuit, Hamilt_written_out, dev_lm, Thets_temp)
-            _E = energy_jit(_Thets)
-            _thetas.append(_Thets)
-            _energies.append(_E)
-            condition_numbers_H.append(np.linalg.cond(H_tilde))
         except:
-            print("Could not converge")
-            print(f"Condition number H: {np.linalg.cond(H_tilde)}")
-            print(f"Condition number S: {np.linalg.cond(S_tilde)}\n")
-            print(S_tilde)
             update = LM.smallest_real_w_norm_optimiz_eig(H_tilde, S_tilde)
-            print("My own algorithm worked!")
-            update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
-            n_not_converged += 1
+        _Thets = LM.new_thetsy(update, Thets)
+            #Energ_temp = LM.energy_calc(circuit, Hamilt_written_out, dev_lm, Thets_temp)
+        _E = energy_jit(_Thets)
+        _thetas.append(_Thets)
+        _energies.append(_E)
+        condition_numbers_H.append(np.linalg.cond(H_tilde))
+        #except:
+         #   print("Could not converge")
+         #   print(f"Condition number H: {np.linalg.cond(H_tilde)}")
+         #   print(f"Condition number S: {np.linalg.cond(S_tilde)}\n")
+         #   print(S_tilde)
+         #   update = LM.smallest_real_w_norm_optimiz_eig(H_tilde, S_tilde)
+         #   print("My own algorithm worked!")
+         #   update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
+         #   n_not_converged += 1
 
     _thetas = np.array(_thetas).reshape((len(_thetas), Thets.size))
     arg_chosen = np.argmin(_energies)
