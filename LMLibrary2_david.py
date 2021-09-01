@@ -165,9 +165,9 @@ def circuit(params, wires):
 ###########################################      Devices      ###########################################################
 
 num_wires = 8
-dev = qml.device('default.qubit', wires=num_wires+1)
-dev2 = qml.device('default.qubit', wires=num_wires+1)
-dev3 = qml.device('default.qubit', wires=num_wires+1)
+dev = qml.device('default.qubit', wires=num_wires+1, shots=None)
+dev2 = qml.device('default.qubit', wires=num_wires+1, shots=None)
+dev3 = qml.device('default.qubit', wires=num_wires+1, shots=None)
 
 _aux_op = np.kron(X-1j*Y, np.eye(2**num_wires))
 def S_newy(int1, int2, U_gates, Thets):
@@ -226,6 +226,7 @@ def H_tilde_matrix(H, E, grad, k):
     H_tilde[0,0] = E
     H_tilde[0,1:] = H_tilde[1:,0] = 0.5 * grad.reshape(n)
     H_tilde[1:, 1:] = H + np.eye(n) * k
+    #print("H device excs: ", dev.num_executions)
     return H_tilde
 
 def S_tilde_matrix(S, k):
@@ -233,6 +234,8 @@ def S_tilde_matrix(S, k):
     S_tilde = np.zeros((n+1, n+1), dtype=complex)
     S_tilde[0, 0] = 1.0
     S_tilde[1:, 1:] = S + np.eye(n) * k
+    devies = dev3.num_executions
+    #print(devies)
     return S_tilde
 
 ######################################          Functions for the optimization         ##################################
@@ -290,14 +293,14 @@ def gen_eigh(A, B):
 
 def smallest_real_w_norm_optimiz_eig(H_til, S_til):
     eigvals, eigvecs = gen_eigh(H_til, S_til)
-    print("Eigenvalues using own solver: ", eigvals)
+    #print("Eigenvalues using own solver: ", eigvals)
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
     return eigvec_wanted_normed
 
 def smallest_real_w_norm_optimiz(H_til, S_til):
     eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
-    print("Eigenvalues using SciPy: ", eigvals)
+    #print("Eigenvalues using SciPy: ", eigvals)
     #eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
