@@ -270,7 +270,7 @@ def gen_eigh(A, B):
     assert np.allclose(B, B.T.conj()) and np.allclose(A, A.T.conj())
     #  - Test for positivity of B
     assert np.min(ln.eigvalsh(B))>0.0
-
+    print("Using this one!!")
     # Solve eigenvalue problem for B
     Lambda_B, Phi_B = ln.eig(B)
     # Define the modified eigenvectors of B (@ is np.matmul)
@@ -290,12 +290,14 @@ def gen_eigh(A, B):
 
 def smallest_real_w_norm_optimiz_eig(H_til, S_til):
     eigvals, eigvecs = gen_eigh(H_til, S_til)
+    print("Eigenvalues using own solver: ", eigvals)
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
     return eigvec_wanted_normed
 
 def smallest_real_w_norm_optimiz(H_til, S_til):
     eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
+    print("Eigenvalues using SciPy: ", eigvals)
     #eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]

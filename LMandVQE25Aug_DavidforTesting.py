@@ -14,10 +14,10 @@ import copy as cp
 import time
 import pandas as pd
 from scipy.interpolate import interp1d
-from jax.config import config
+# from jax.config import config
 
-config.update("jax_enable_x64", True)
-import jax
+# config.update("jax_enable_x64", True)
+# import jax
 np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
 # Configuration
@@ -89,7 +89,7 @@ max_iterations = 200
 # These functions take the parameters as unflattened shape - and energy_grad outputs an unflattened gradient
 # optimize=True makes the function a bit cheaper
 get_energy = lambda device: qml.ExpvalCost(circuit, Hamilt_written_out, device, optimize=True)
-get_energy_jit = lambda device: jax.jit(qml.ExpvalCost(circuit, Hamilt_written_out, device, optimize=True,interface='jax'))
+#get_energy_jit = lambda device: jax.jit(qml.ExpvalCost(circuit, Hamilt_written_out, device, optimize=True,interface='jax'))
 
 
 
@@ -104,7 +104,7 @@ Thets = Thets_start.copy()
 # Initial point
 energy = get_energy(dev_lm)
 energy_grad = qml.grad(energy)
-energy_jit = get_energy_jit(dev_lm)
+energy_jit = get_energy(dev_lm)
 E_start = energy_jit(Thets)
 #Initialize memory
 iterations_lm = [0]
@@ -135,9 +135,20 @@ for n in range(num_steps_lm):
     for k_ind, k in enumerate(regularizations): 
         H_tilde = LM.H_tilde_matrix(H, energies_lm[-1], gradient, k)
         try:
+            print("This is H_tilde: ")
+            print(H_tilde.tolist())
+            print("This is S_tilde: ")
+            print(S_tilde.tolist())
             update = LM.smallest_real_w_norm_optimiz(H_tilde, S_tilde)
+            update_own = LM.smallest_real_w_norm_optimiz_eig(H_tilde, S_tilde)
+            print("Difference in update eigenvector: ")
+            print(update-update_own)
         except:
+            print("These are H tilde and S tilde converging numbers when: ")
+            print(np.linalg.cond(H_tilde))
+            print(np.linalg.cond(S_tilde))
             update = LM.smallest_real_w_norm_optimiz_eig(H_tilde, S_tilde)
+            n_not_converged +=1
         _Thets = LM.new_thetsy(update, Thets)
             #Energ_temp = LM.energy_calc(circuit, Hamilt_written_out, dev_lm, Thets_temp)
         _E = energy_jit(_Thets)
@@ -225,7 +236,7 @@ t_1_scipy = time.process_time()
 
 t_0_adam = time.process_time()
 energy_grad = qml.grad(get_energy(dev_adam))
-energy_jit = get_energy_jit(dev_adam)
+energy_jit = get_energy(dev_adam)
 #initializing
 Thets = Thets_start.copy()
 energies_adam = []
@@ -246,7 +257,7 @@ t_1_adam = time.process_time()
 
 t_0_grad = time.process_time()
 energy_grad = qml.grad(get_energy(dev_grad))
-energy_jit = get_energy_jit(dev_grad)
+energy_jit = get_energy(dev_grad)
 #initializing
 Thets = Thets_start.copy()
 energies_grad = []
