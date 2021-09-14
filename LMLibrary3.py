@@ -248,7 +248,7 @@ def smallest_real_w_norm_optimiz_eig(H_til, S_til):  ##keep the option in, in ca
     return eigvec_wanted_normed
 
 def smallest_real_w_norm_optimiz(H_til, S_til):
-    eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
+    eigvals, eigvecs = sp.linalg.eigh(H_til, S_til)
     #eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
