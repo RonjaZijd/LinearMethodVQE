@@ -7,8 +7,8 @@ I_mat = [[1,0], [0,1]]
 X = np.array([[0,1],[1,0]])
 Y = np.array([[0,-1j],[1j,0]])
 Z = np.array([[1,0], [0,-1]])
-shapy = (4,3)
-num_wires = 4
+shapy = (6,3)
+num_wires = 6
 
 ######################      gates                    #############################################################
 
@@ -146,17 +146,11 @@ def up_to_un_circ(int2, i, j, int_max, U_gates, Thets):  ##I and J is where we l
 dev = qml.device('default.qubit', wires=num_wires+1)
 #dev2 = qml.device('default.qubit', wires=num_wires+1) ##don't completely see why we need multiple different devices here?
 dev3 = qml.device('default.qubit', wires=num_wires+1)
-dev_state = qml.device('default.qubit', wires=num_wires+1)
 
 _aux_op = np.kron(X-1j*Y, np.eye(2**num_wires))
 
-@qml.qnode(dev_state)
-def state_calculator(U_gates, Thets):
-    up_to_un_circ(0, 0, 0, Thets.size, U_gates, Thets)
-    return qml.state()
-
 def S_newy(int1, int2, U_gates, Thets):
-    @qml.qnode(dev3)
+    @qml.qnode(dev)
     def circ_S_newy(int1, int2, U_gates, Thets):
         special_circ_creator(int1, int2, U_gates, Thets)
         return qml.state()
@@ -165,7 +159,7 @@ def S_newy(int1, int2, U_gates, Thets):
     return S
 
 def total_ham_element(int1, int2, U_gates, Thets, inp_arrays, Hamil_coeffs, entangle_wires):
-    @qml.qnode(dev)
+    @qml.qnode(dev3)
     def circ_h(int1, int2, U_gates, Thets, entangle_wires):
         mat_len = Thets.size
         i, j = circ_creator(int1, int2, U_gates, Thets)
@@ -182,10 +176,6 @@ def total_ham_element(int1, int2, U_gates, Thets, inp_arrays, Hamil_coeffs, enta
     return H
 
 #############################    Matrix calculations    #################################################################
-
-def state_getter(U_gates, Thets):
-    state = state_calculator(U_gates, Thets)
-    return state
 
 
 def H_Matrix_final_calc(U_gates, Thets, Hamil_array, Hamil_coeffs, entangle_gates):
@@ -206,7 +196,7 @@ def S_Matrix_final_calc_newy(U_gates, Thets):
         S = S_newy(i, j, U_gates, Thets)
         S_matrix[i,j] = 0.25*S
         S_matrix[j,i] = 0.25*np.conj(S)
-
+    
     return S_matrix
 
 def H_tilde_matrix(H, E, grad, k): ##understand thteesee
@@ -215,7 +205,7 @@ def H_tilde_matrix(H, E, grad, k): ##understand thteesee
     H_tilde[0,0] = E
     H_tilde[0,1:] = H_tilde[1:,0] = 0.5 * grad.reshape(n)
     H_tilde[1:, 1:] = H + np.eye(n) * k
-    #print("Number of matrix executions for H: ", dev.num_executions)
+    
     return H_tilde
 
 def S_tilde_matrix(S, k):
@@ -223,7 +213,6 @@ def S_tilde_matrix(S, k):
     S_tilde = np.zeros((n+1, n+1), dtype=complex)
     S_tilde[0, 0] = 1.0
     S_tilde[1:, 1:] = S + np.eye(n) * k
-    #print("Num of matrix executions of S: ", dev3.num_executions)
     return S_tilde
 
 ######################################          Functions for the optimization         ##################################
@@ -253,21 +242,14 @@ def my_gen_solve(matrixA, matrixB, size):  ##nothing really got changed below th
 
     return eigvalsA, final_eigvec
 
-def smallest_real_w_norm_optimiz_eigh(H_til, S_til):  ##keep the option in, in case I want to go back to this later. 
-    eigvals, eigvecs = sp.linalg.eigh(H_til, S_til, len(H_til))
+def smallest_real_w_norm_optimiz_eig(H_til, S_til):  ##keep the option in, in case I want to go back to this later. 
+    eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
-    return eigvals, eigvec_wanted_normed
+    return eigvec_wanted_normed
 
 def smallest_real_w_norm_optimiz(H_til, S_til):
-    eigvals, eigvecs = sp.linalg.eigh(H_til, S_til)
-    #eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
-    eigvec_wanted = eigvecs[:,np.argmin(np.real(eigvals))]
-    eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
-    return eigvals, eigvec_wanted_normed
-
-def smallest_real_w_norm_optimizz(C):
-    eigvals, eigvecs = sp.linalg.eig(C)
+    eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
     #eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
@@ -279,18 +261,3 @@ def new_thetsy(eigvec, Thets):
     thetsy = np.reshape(np.real(eigvec), shapy)
     thets = Thets + thetsy
     return thets
-
-def finding_start_of_tail(array, k_array, tol):
-    compare_val = array[-1]
-    print("The compare value is: ", compare_val)
-    for i in range(len(k_array)):
-        k_max = k_array[-i]
-        #print("The difference with k", k_array[i])
-        if np.abs(compare_val-array[-1-i])>tol:
-            if i>5:
-                print("Tail ends at: ", k_array[-i+4])
-                k_max = k_array[-i+4] #so that it doesn't completely cut off the tail
-                break
-            else:
-                print("Tail ends at: ", k_max)
-    return k_max
