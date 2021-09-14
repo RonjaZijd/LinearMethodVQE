@@ -146,8 +146,14 @@ def up_to_un_circ(int2, i, j, int_max, U_gates, Thets):  ##I and J is where we l
 dev = qml.device('default.qubit', wires=num_wires+1)
 #dev2 = qml.device('default.qubit', wires=num_wires+1) ##don't completely see why we need multiple different devices here?
 dev3 = qml.device('default.qubit', wires=num_wires+1)
+dev_state = qml.device('default.qubit', wires=num_wires+1)
 
 _aux_op = np.kron(X-1j*Y, np.eye(2**num_wires))
+
+@qml.qnode(dev_state)
+def state_calculator(U_gates, Thets):
+    up_to_un_circ(0, 0, 0, Thets.size, U_gates, Thets)
+    return qml.state()
 
 def S_newy(int1, int2, U_gates, Thets):
     @qml.qnode(dev3)
@@ -176,6 +182,10 @@ def total_ham_element(int1, int2, U_gates, Thets, inp_arrays, Hamil_coeffs, enta
     return H
 
 #############################    Matrix calculations    #################################################################
+
+def state_getter(U_gates, Thets):
+    state = state_calculator(U_gates, Thets)
+    return state
 
 
 def H_Matrix_final_calc(U_gates, Thets, Hamil_array, Hamil_coeffs, entangle_gates):
@@ -247,14 +257,14 @@ def smallest_real_w_norm_optimiz_eigh(H_til, S_til):  ##keep the option in, in c
     eigvals, eigvecs = sp.linalg.eigh(H_til, S_til, len(H_til))
     eigvec_wanted = eigvecs[np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
-    return eigvec_wanted_normed
+    return eigvals, eigvec_wanted_normed
 
 def smallest_real_w_norm_optimiz(H_til, S_til):
     eigvals, eigvecs = sp.linalg.eig(H_til, S_til)
     #eigvals, eigvecs = my_gen_solve(H_til, S_til, len(H_til))
     eigvec_wanted = eigvecs[:,np.argmin(np.real(eigvals))]
     eigvec_wanted_normed = eigvec_wanted / eigvec_wanted[0]
-    return eigvec_wanted_normed
+    return eigvals, eigvec_wanted_normed
 
 def smallest_real_w_norm_optimizz(C):
     eigvals, eigvecs = sp.linalg.eig(C)
