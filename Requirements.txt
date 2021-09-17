@@ -1,0 +1,97 @@
+absl-py==0.13.0
+appdirs==1.4.4
+astunparse==1.6.3
+atomicwrites==1.4.0
+attrs @ file:///tmp/build/80754af9/attrs_1620827162558/work
+autograd==1.3
+autopep8==1.5.7
+autoray==0.2.5
+cachetools==4.2.2
+certifi==2021.5.30
+chardet==4.0.0
+cirq==0.10.0
+colorama @ file:///tmp/build/80754af9/colorama_1607707115595/work
+cycler==0.10.0
+decorator @ file:///tmp/build/80754af9/decorator_1621259047763/work
+deprecation==2.1.0
+flatbuffers==1.12
+future==0.18.2
+gast==0.4.0
+google-api-core==1.30.0
+google-auth==1.32.0
+google-auth-oauthlib==0.4.4
+google-pasta==0.2.0
+googleapis-common-protos==1.53.0
+grpcio==1.34.1
+h5py==3.1.0
+idna==2.10
+importlib-metadata @ file:///C:/ci/importlib-metadata_1617877484576/work
+importlib-resources @ file:///C:/ci/importlib_resources_1622586297860/work
+iniconfig @ file:///home/linux1/recipes/ci/iniconfig_1610983019677/work
+ipython-genutils==0.2.0
+jax==0.2.19
+jsonschema==3.2.0
+jupyter-core==4.7.1
+keras-nightly==2.5.0.dev2021032900
+Keras-Preprocessing==1.1.2
+kiwisolver==1.3.1
+Markdown==3.3.4
+matplotlib==3.4.2
+more-itertools @ file:///tmp/build/80754af9/more-itertools_1622818384463/work
+mpmath==1.2.1
+msgpack @ file:///C:/ci/msgpack-python_1612287368835/work
+nbformat==5.1.3
+networkx @ file:///tmp/build/80754af9/networkx_1598376031484/work
+numpy==1.19.5
+oauthlib==3.1.1
+openfermion==1.0.1
+openfermionpsi4==0.5
+opt-einsum==3.3.0
+packaging @ file:///tmp/build/80754af9/packaging_1611952188834/work
+pandas==1.2.5
+PennyLane==0.17.0
+PennyLane-Qchem==0.16.0
+Pillow==8.2.0
+Pint @ file:///home/conda/feedstock_root/build_artifacts/pint_1616436262198/work
+pluggy @ file:///C:/ci/pluggy_1615976358795/work
+protobuf==3.13.0
+psutil @ file:///C:/ci/psutil_1612298324802/work
+PubChemPy==1.0.4
+py @ file:///tmp/build/80754af9/py_1607971587848/work
+py-cpuinfo @ file:///tmp/build/80754af9/py-cpuinfo_1618437357364/work
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
+pycodestyle==2.7.0
+pydantic==1.3
+pyparsing @ file:///home/linux1/recipes/ci/pyparsing_1610983426697/work
+pyrsistent==0.17.3
+pytest==6.2.4
+python-dateutil==2.8.1
+pytz==2021.1
+pywin32==301
+PyYAML==5.4.1
+qcelemental @ file:///home/conda/feedstock_root/build_artifacts/qcelemental_1601696562157/work
+qcengine @ file:///home/conda/feedstock_root/build_artifacts/qcengine_1621257782317/work
+requests==2.25.1
+requests-oauthlib==1.3.0
+rsa==4.7.2
+scipy==1.7.0
+seaborn==0.11.2
+semantic-version==2.6.0
+six==1.15.0
+sortedcontainers==2.4.0
+sympy==1.8
+tensorboard==2.5.0
+tensorboard-data-server==0.6.1
+tensorboard-plugin-wit==1.8.0
+tensorflow==2.5.0
+tensorflow-estimator==2.5.0
+termcolor==1.1.0
+toml @ file:///tmp/build/80754af9/toml_1616166611790/work
+tqdm==4.61.1
+traitlets==5.0.5
+typing-extensions==3.7.4.3
+urllib3==1.26.5
+Werkzeug==2.0.1
+wincertstore==0.2
+wrapt==1.12.1
