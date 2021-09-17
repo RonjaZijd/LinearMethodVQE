@@ -24,6 +24,7 @@ eigenvalue is used as an update step for the parameters in the variational quant
 - Presentation --> slides which accompanied a talk given to the research group near the end of the internship
 
 **SetUpInstructions**
+
 The main file to use is 'LinearMethodandVQE.py'. In its current form it compares the linear method to the optimizers SciPy, Adam and GradientDescent. It uses a simple variational circuit of
 12 parameters and uses the hamiltonian of a Hydrogen molecule. Settings to test a different system can be changed at the beginning of the file. The variational circuit can be
 filled in manually, the form it should have is: [[gate1 on wire1, gate2 on wire1, ...], [gate1 on wire2, gate2 on wire2, ... ] ...]. Furthermore when switching to a different
@@ -32,4 +33,5 @@ different system either by using the hamiltonians provided in the 'HamiltoninasL
 chemistry package one should use the function called '....' from the 'HamiltoniansLibrary.py' to get the Hamiltonian in the correct form for use for the program. 
 
 **Eig vs Eigh**
+
 Note! The goal of the linear method is to solve the generalized eigenvalue equation Hv = eSv. To do this two different optimizers were used: scipy.eig and scipy.eigh, which surprisingly enough give different results. This was the point at which the project had to be ended so it has not yet been resolved, however it was seen that while scipy.eig manages to optimize effectively (having the same performance as the other optimizers which it was compared to), scipy.eigh does not. The LMLibrary file contains two seperate functions for solving the generalized eigenvalue equation to give the user choice in which one to use. 
