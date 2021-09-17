@@ -4,15 +4,23 @@ import scipy as sp
 
 np.set_printoptions(suppress=True, precision=3, formatter={'float_kind':'{:0.2f}'.format})
 
-#########################Setting up
+#matrixA = np.array([[4,2,1,6], [0,0,3,1], [6,7,1,8], [2,1,5,0]])  ###symmetric
+#matrixB = np.array([[0,4,1,3], [1,3,4,5], [2,3,9,4], [1,2,0,1]])
+
 size = 4
+
 A = np.random.normal(0, 1000, (size,size))
 B = np.random.normal(0, 1000, (size,size))
 matrixA = (A + A.T)/2 ##this makes the matrices symmetric
 matrixB = (B + B.T)/2
+print(matrixA)
+print(matrixB)
 
-#########################Making B positive definite
+#now making B positive definite:
 eigvaly_B, eigvecy_B = np.linalg.eigh(matrixB)
+print("Eigenvalue and eigvectors of very original B: ")
+print(eigvaly_B)
+print(eigvecy_B)
 additi = np.abs(np.min(np.array(eigvaly_B)))
 for i in range(len(matrixB)):
     for j in range(len(matrixB[i])):
